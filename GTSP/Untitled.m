@@ -1,0 +1,10 @@
+x=[1000,3000,5000,7000,9000];
+y1=[8,14,17,17,19];
+y2=[17,25,31,36,42];
+figure;
+plot(x,y1,'-*','LineWidth',1.5);
+hold on;
+plot(x,y2,'-o','LineWidth',1.5);
+grid on;
+xlabel('飞行空间范围（m）');
+ylabel('同步轮数');

@@ -186,8 +186,10 @@ skewFinal=mean(skew);
 offsetFinal=mean(offset);
 
 format long;
-plot(1:simulation_k,skewFinal(1:end),'-*','LineWidth',1);
+plot(5:simulation_k,skewFinal(5:end),'-*','LineWidth',1);
 xlabel('同步轮次');
 ylabel('最大频率偏差');
+grid on;
+hold on;
 
 %disp(x1)

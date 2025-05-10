@@ -17,7 +17,6 @@ for n=(i+1):(2*i)
     if A(n+i,1)>=(j-1)
         %存在首轮消息，将二轮三轮与一轮距离补偿
         if A(n-i,1) ~=0
-            
             %对第三轮消息进行偏移d的处理，让其尽量与第一次数据在同一直线上
             if abs(A(n+i,1)-A(n-i,1))<=10 %当两次消息间隔轮次过大时，不需要进行偏移补偿
                 old_x=(A(n-i,3)+A(n-i,5)+A(n-i,7)+A(n-i,9)+A(n-i,11))/5;%首次接收消息的x轴平均值
@@ -121,7 +120,7 @@ for n=(i+1):(2*i)
         %首轮有消息，对第一轮进行距离补偿
         if A(n-i,1)~=0
             %对第二轮消息进行偏移d的处理，让其尽量与第一次数据在同一直线上
-            if abs(A(n,1)-A(n-i,1))<=10 %当两次消息间隔轮次过大时，不需要进行偏移补偿
+            if A(n,1)-A(n-i,1)<=10 %当两次消息间隔轮次过大时，不需要进行偏移补偿
                 old_x=(A(n-i,3)+A(n-i,5)+A(n-i,7)+A(n-i,9)+A(n-i,11))/5;%首次接收消息的x轴平均值
                 old_y=(A(n-i,2)+A(n-i,4)+A(n-i,6)+A(n-i,8)+A(n-i,10))/5;%首次接收消息的y轴平均值
                 new_x=(A(n,3)+A(n,5)+A(n,7)+A(n,9)+A(n,11))/5;%最新接收消息的x轴平均值
@@ -169,17 +168,7 @@ for n=(i+1):(2*i)
             m=m+1;
             %首轮没有消息，说明只有第二轮一个二跳信息，直接估计
         else
-            %利用第一次的消息进行线性回归求斜率
-        Tj_mean_old=(A(n,2)+A(n,4)+A(n,6)+A(n,8)+A(n,10))/5;
-        Ti_mean_old=(A(n,3)+A(n,5)+A(n,7)+A(n,9)+A(n,11))/5;
-        molecule=(A(n,2)-Tj_mean_old)*(A(n,3)-Ti_mean_old)+(A(n,4)-Tj_mean_old)*(A(n,5)-Ti_mean_old)...
-            +(A(n,6)-Tj_mean_old)*(A(n,7)-Ti_mean_old)+(A(n,8)-Tj_mean_old)*(A(n,9)-Ti_mean_old)+...
-            (A(n,10)-Tj_mean_old)*(A(n,11)-Ti_mean_old);
-        denominator=(A(n,3)-Ti_mean_old)^2+(A(n,5)-Ti_mean_old)^2+(A(n,7)-Ti_mean_old)^2+...
-            (A(n,9)-Ti_mean_old)^2+(A(n,11)-Ti_mean_old)^2;
-        
-        deltal(n,1)=molecule*A(n,12)/denominator;%把首次接收到消息的节点的更新值加入deltal
-        m=m+1;
+            
         end
         
         

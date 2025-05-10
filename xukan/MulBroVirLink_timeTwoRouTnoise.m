@@ -141,7 +141,7 @@ for r=1:5
     %后n行表示最新接收到某节点的消息数据
     Neb_list=cell(num_drones,1);
     for i=1:num_drones
-        Neb_list{i}=zeros(num_drones*3,1+broad*2+2+1);
+        Neb_list{i}=zeros(num_drones*2,1+broad*2+2+1);
     end
     %初始化每个节点本地的每一轮接收到的邻居信息列表(消息轮，(当前邻居物理，当前自身物理)*广播轮数（不包含多跳邻居）
     %用于计算当前节点所处网络的稠密程度
@@ -157,7 +157,7 @@ for r=1:5
             
             %第一轮不更新，从第二轮开始
             if j>=2
-                l(d(i),1)=MulBroVirLink_timeThreeRouTnoise_l(Neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
+                l(d(i),1)=MulBroVirLink_timeTwoRouTnoise_l(Neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
             end
             
             A=I{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的连接矩阵
@@ -231,9 +231,9 @@ for r=1:5
 %                                         end
 %                                         C(k3,14)=m1;
 %                                         C(k3,12)=l(k3,1);
-                                        %k3对应的二跳邻居信息是否可以加入二轮同步矩阵
-                                        %（第二轮为空)或者（第二轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
-                                    if (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
+%                                         %k3对应的二跳邻居信息是否可以加入二轮同步矩阵
+%                                         %（第二轮为空)或者（第二轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
+                                     if (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
                                         %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
                                         C(k3+num_drones,1)=j;
                                         for k4=1:5
@@ -305,7 +305,7 @@ for r=1:5
 %                                         C(k3,12)=l(k3,1);
                                         %k3对应的二跳邻居信息是否可以加入二轮同步矩阵
                                         %（第二轮为空)或者（第二轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
-                                    if (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
+                                     if (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
                                         %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
                                         C(k3+num_drones,1)=j;
                                         for k4=1:5
@@ -438,22 +438,22 @@ for r=1:5
                                         [alphat,m1]=compensate(D1,k3,num_drones,j);%返回斜率和估计所用的轮数
                                         deltat_y=alphat*deltat;%用于对二跳邻居时钟补偿的时间差
                                         
-%                                         %k3对应的二跳邻居信息是否可以加入一轮同步矩阵
-%                                         %（第一轮为空)或者（第一轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
-%                                         if (C(k3,1)==0)||(C(k3,1)>=j-1&&C(k3,14)>0&&C(k3,14)<m1)
-%                                             %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
-%                                             C(k3,1)=j;
-%                                             for k4=1:5
-%                                                 C(k3,2*k4)=D2(k3,2*k4)+deltat_y;
-%                                             end
-%                                             for k4=1:5
-%                                                 C(k3,2*k4+1)=C(d(i)+num_drones*2,2*k4+1);
-%                                             end
-%                                             C(k3,14)=m1;
-%                                             C(k3,12)=l(k3,1);
+                                        %k3对应的二跳邻居信息是否可以加入一轮同步矩阵
+                                        %（第一轮为空)或者（第一轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
+                                        if (C(k3,1)==0)||(C(k3,1)>=j-1&&C(k3,14)>0&&C(k3,14)<m1)
+                                            %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
+                                            C(k3,1)=j;
+                                            for k4=1:5
+                                                C(k3,2*k4)=D2(k3,2*k4)+deltat_y;
+                                            end
+                                            for k4=1:5
+                                                C(k3,2*k4+1)=C(d(i)+num_drones*2,2*k4+1);
+                                            end
+                                            C(k3,14)=m1;
+                                            C(k3,12)=l(k3,1);
                                             %k3对应的二跳邻居信息是否可以加入二轮同步矩阵
                                             %（第二轮为空)或者（第二轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
-                                        if (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
+                                        elseif (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
                                             %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
                                             C(k3+num_drones,1)=j;
                                             for k4=1:5
@@ -513,22 +513,22 @@ for r=1:5
                                         [alphat,m1]=compensate(D1,k3,num_drones,j);%返回斜率和估计所用的轮数
                                         deltat_y=alphat*deltat;%用于对二跳邻居时钟补偿的时间差
                                         
-%                                         %k3对应的二跳邻居信息是否可以加入一轮同步矩阵
-%                                         %（第一轮为空)或者（第一轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
-%                                         if (C(k3,1)==0)||(C(k3,1)>=j-1&&C(k3,14)>0&&C(k3,14)<m1)
-%                                             %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
-%                                             C(k3,1)=j;
-%                                             for k4=1:5
-%                                                 C(k3,2*k4)=D2(k3,2*k4)+deltat_y;
-%                                             end
-%                                             for k4=1:5
-%                                                 C(k3,2*k4+1)=C(d(i)+num_drones*2,2*k4+1);
-%                                             end
-%                                             C(k3,14)=m1;
-%                                             C(k3,12)=l(k3,1);
+                                        %k3对应的二跳邻居信息是否可以加入一轮同步矩阵
+                                        %（第一轮为空)或者（第一轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
+                                        if (C(k3,1)==0)||(C(k3,1)>=j-1&&C(k3,14)>0&&C(k3,14)<m1)
+                                            %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
+                                            C(k3,1)=j;
+                                            for k4=1:5
+                                                C(k3,2*k4)=D2(k3,2*k4)+deltat_y;
+                                            end
+                                            for k4=1:5
+                                                C(k3,2*k4+1)=C(d(i)+num_drones*2,2*k4+1);
+                                            end
+                                            C(k3,14)=m1;
+                                            C(k3,12)=l(k3,1);
                                             %k3对应的二跳邻居信息是否可以加入二轮同步矩阵
                                             %（第二轮为空)或者（第二轮是最新消息也是二跳且估计数据集小于当前二跳估计数据集），则覆盖
-                                        if (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
+                                        elseif (C(k3+num_drones,1)==0)||(C(k3+num_drones,1)>=j-1&&C(k3+num_drones,14)>0&&C(k3+num_drones,14)<m1)
                                             %分别填充同步轮次，二跳邻居和自身时钟，估计所用数据轮数，l值
                                             C(k3+num_drones,1)=j;
                                             for k4=1:5

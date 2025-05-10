@@ -1,4 +1,4 @@
-function l=MulBroVirLink_timeThreeRouTnoise_l(A,j,i,L)
+function l=MulBroVirLink_timeTwoRouTnoise_l(A,j,i,L)
 %采用三轮消息进行偏斜估计，由于此种情况时延（非传播）较大，所以不采用距离补偿算法
 % A:节点自身维护的消息矩阵
 % j:当前同步轮数

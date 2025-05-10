@@ -160,12 +160,12 @@ for j=1:simulation_k
                     C(d(i),1)=j;
                     %填充邻居列表中首次接收到该节点信息的数据
                     for k1=1:5
-                        C(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+2e-8*randn+2e-6*randn;
+                        C(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+0*randn;
                     end
                     
                     for k2=1:5
                         C(d(i),2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+2e-8*randn;
+                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+0*randn;
                     end
                    
                     C(d(i),12)=l(d(i),1);
@@ -176,12 +176,12 @@ for j=1:simulation_k
                 if C(d(i),1)~=0 %&& C(d(i)+num_drones,1)==0                             
                     C(d(i)+num_drones,1)=j;
                     for k1=1:5
-                        C(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+2e-8*randn+2e-6*randn;
+                        C(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+0*randn;
                     end
                     
                     for k2=1:5
                         C(d(i)+num_drones,2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+2e-8*randn;
+                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+0*randn;
                     end
                    
                     C(d(i)+num_drones,12)=l(d(i),1);
@@ -241,4 +241,5 @@ skewFinal=mean(skew);
 
 format long;
 plot(5:simulation_k,skewFinal(5:end),'-*');
+hold on;
 

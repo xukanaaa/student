@@ -1,4 +1,4 @@
-function M=MulBroVirLink_alphaTwoRouTnoise_l(A,j,i,L)
+function l=MulBroVirLink_alphaTwoRouTnoise_l(A,j,i,L)
 % A:节点自身维护的消息矩阵
 % j:当前同步轮数
 % i:无人机总数

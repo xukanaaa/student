@@ -1,8 +1,8 @@
 num_drones = 100; % 无人机数量
-space_size = 9000; % 空间大小（长、宽、高均为1km）
+space_size = 3000; % 空间大小（长、宽、高均为1km）
 min_speed =80; % 最小速度（m/s）
 max_speed =100; % 最大速度（m/s）
-comm_range = 3500; % 通信范围（m）
+comm_range = 1500; % 通信范围（m）
 time_step = 0.1; % 时间步长（s）
 simulation_time = 500; % 模拟时间（s）
 t_period=2;%发送消息伪周期

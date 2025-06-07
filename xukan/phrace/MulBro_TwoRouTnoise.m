@@ -1,10 +1,10 @@
 %使用首轮和最新轮次消息用来同步，并且对相对运动产生的位置偏移进行补偿，利用线性回归最小二乘滤波
 
 num_drones = 100; % 无人机数量
-space_size = 9000; % 空间大小（长、宽、高均为1km）
+space_size = 3000; % 空间大小（长、宽、高均为1km）
 min_speed =80; % 最小速度（m/s）
 max_speed =100; % 最大速度（m/s）
-comm_range = 3500; % 通信范围（m）
+comm_range = 1500; % 通信范围（m）
 time_step = 0.1; % 时间步长（s）
 speedChange=2;%无人机每秒速度的该变量（正态分布）
 simulation_time = 500; % 模拟时间（s）

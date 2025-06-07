@@ -1,4 +1,4 @@
-function deltaTd=compensatePha(C,P,k,n)
+ function deltaTd=compensatePha(C,P,k,n)
 %对相位消息的距离偏移进行补偿
 %C中的第二轮消息表示最新的物理时钟时间戳对
 %P中的消息表示上一轮的物理时钟时间戳对

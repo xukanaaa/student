@@ -1,5 +1,5 @@
 %使用首轮和最新轮次消息用来同步，并且对相对运动产生的位置偏移进行补偿，利用线性回归最小二乘滤波
-%采用选择性区域性虚拟链接，增加图的代数联通度，从而加快收敛速度
+%采用选择性区域性虚拟链接，增加图的代数联通度，从而加快收敛速度，多跳虚拟链接传递的是αij
 
 num_drones = 100; % 无人机数量
 space_size = 3000; % 空间大小（长、宽、高均为1km）
@@ -146,7 +146,7 @@ end
 %模拟同步更新和广播
 for j=1:simulation_k
     for i=1:num_drones
-        [c,d]=sort(t_global_total(:,j));
+        [~,d]=sort(t_global_total(:,j));
         
              %第一轮不更新，从第二轮开始
         if j>=2
@@ -173,7 +173,7 @@ for j=1:simulation_k
                 
                 %对于自己上一轮用于同步邻居小于3时，向所有邻居发送求助，修改邻居的flag为1，
                 %该邻居检测到flag为1时，则在下次广播中附加自己的二跳信息
-                if j>=2 && used_num<=200
+                if j>=2 && used_num<=5
                     C(1,13)=1;
                 end
                 
@@ -182,12 +182,12 @@ for j=1:simulation_k
                     C(d(i),1)=j;
                     %填充邻居列表中首次接收到该节点信息的数据
                     for k1=1:5
-                        C(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+2e-8*randn+2e-6*randn;
+                        C(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
                     end
                     
                     for k2=1:5
                         C(d(i),2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+2e-8*randn;
+                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
                     end
                     
                     %判断是否往邻居消息列表中加入当前广播节点的二跳信息，如果广播节点flag=1，则需要添加
@@ -206,12 +206,12 @@ for j=1:simulation_k
                 if C(d(i),1)~=0                             
                     C(d(i)+num_drones,1)=j;
                     for k1=1:5
-                        C(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+2e-8*randn+2e-6*randn;
+                        C(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
                     end
                     
                     for k2=1:5
                         C(d(i)+num_drones,2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+2e-8*randn;
+                            beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
                     end
                     
                      %判断是否往邻居消息列表中加入当前广播节点的二跳信息，如果广播节点flag=1，则需要添加
@@ -265,5 +265,6 @@ end
 skewFinal=mean(skew);
 
 format long;
-plot(5:simulation_k,skewFinal(5:end),'-*','LineWidth',1);
+plot(1:simulation_k,skewFinal(1:end),'-*','LineWidth',1);
+hold on;
 

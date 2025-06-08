@@ -135,8 +135,8 @@ for r=1:5
             
             %第一轮不更新，从第二轮开始
             if j>=2
-                l(d(i),1)=GTSP_update_l(Neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
-                %h(d(i),1)=update_h(Neb_list{d(i)},j,num_drones,h(d(i),1));%更新逻辑时钟相偏参数
+                l(d(i),1)=MACTS_update_l(Neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
+                h(d(i),1)=MACTS_update_h(Neb_list{d(i)},j,num_drones,h(d(i),1),comm_range);%更新逻辑时钟相偏参数
             end
             
             A=I{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的连接矩阵
@@ -149,9 +149,9 @@ for r=1:5
                     C(d(i),6)=C(d(i),2);
                     C(d(i),7)=C(d(i),3);
                     C(d(i),1)=j;
-                    C(d(i),2)=t_local_total(d(i),j)+0*randn;
-                    C(d(i),3)=(((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)))+B(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+0*randn;
-                    C(d(i),4)=l(d(i),1)*C(d(i),2)+h(d(i),1);
+                    C(d(i),2)=t_local_total(d(i),j)+2e-9*randn;%频率同步
+                    C(d(i),3)=(((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)))+B(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+2e-9*randn;
+                    C(d(i),4)=l(d(i),1)*C(d(i),2)+h(d(i),1);%相位同步
                     C(d(i),5)=l(k,1)*C(d(i),3)+h(k,1);
                     C(d(i),8)=l(d(i),1);
                     Neb_list{k}=C;
@@ -186,9 +186,10 @@ skewFinal=mean(skew);
 offsetFinal=mean(offset);
 
 format long;
-plot(5:simulation_k,skewFinal(5:end),'-*','LineWidth',1);
+%plot(5:simulation_k,skewFinal(5:end),'-*','LineWidth',1);
+plot(12:simulation_k,offsetFinal(12:end),'-*','LineWidth',1);
 xlabel('同步轮次');
-ylabel('最大频率偏差');
+ylabel('最大相位偏差');
 grid on;
 hold on;
 

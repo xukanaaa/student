@@ -19,6 +19,8 @@ skew=zeros(round,simulation_k);%未平均之前的最大频偏差值矩阵
 offset=zeros(round,simulation_k);
 skewFinal=zeros(1,simulation_k);%平均后的每一轮频偏差值。
 offsetFinal=zeros(1,simulation_k);
+clock=zeros(round,simulation_k);
+clockFinal=zeros(1,simulation_k);
 
 for r=1:5
     
@@ -149,8 +151,8 @@ for r=1:5
                     C(d(i),6)=C(d(i),2);
                     C(d(i),7)=C(d(i),3);
                     C(d(i),1)=j;
-                    C(d(i),2)=t_local_total(d(i),j)+2e-9*randn;%频率同步
-                    C(d(i),3)=(((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)))+B(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+2e-9*randn;
+                    C(d(i),2)=t_local_total(d(i),j)+0*randn;%频率同步
+                    C(d(i),3)=(((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)))+B(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+0*randn;
                     C(d(i),4)=l(d(i),1)*C(d(i),2)+h(d(i),1);%相位同步
                     C(d(i),5)=l(k,1)*C(d(i),3)+h(k,1);
                     C(d(i),8)=l(d(i),1);
@@ -180,16 +182,21 @@ for r=1:5
     
     skew(r,:)=x1';
     offset(r,:)=y1';
+        clock(r,:)=deltamax';
+
 end
 
 skewFinal=mean(skew);
 offsetFinal=mean(offset);
+clockFinal=mean(clock);
+
 
 format long;
-%plot(5:simulation_k,skewFinal(5:end),'-*','LineWidth',1);
-plot(12:simulation_k,offsetFinal(12:end),'-*','LineWidth',1);
-xlabel('同步轮次');
-ylabel('最大相位偏差');
+%plot(1:simulation_k,skewFinal(1:end),'-s','LineWidth',1);
+plot(1:simulation_k,offsetFinal(1:end),'-s','LineWidth',1);
+%plot(1:simulation_k,clockFinal(1:end),'-s','LineWidth',1);
+% xlabel('同步轮次');
+% ylabel('最大相位偏差');
 grid on;
 hold on;
 

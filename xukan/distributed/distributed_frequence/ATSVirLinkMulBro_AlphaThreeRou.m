@@ -147,7 +147,7 @@ end
 %模拟同步更新和广播
 for j=1:simulation_k
     for i=1:num_drones
-        [c,d]=sort(t_global_total(:,j));
+        [~,d]=sort(t_global_total(:,j));
         
         A=I{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的连接矩阵
         B1=D{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的距离矩阵

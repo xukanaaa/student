@@ -188,11 +188,11 @@ offsetFinal=mean(offset);
 clockFinal=mean(clock);
 
 format long;
-plot(5:simulation_k,skewFinal(1:196),'-o','LineWidth',1);
+%plot(5:simulation_k,skewFinal(1:196),'-o','LineWidth',1);
 % hold on;
-% plot(8:simulation_k,offsetFinal(1:193),'-o','LineWidth',1);
+ %plot(8:simulation_k,offsetFinal(1:193),'-o','LineWidth',1);
 % hold on;
- %plot(8:simulation_k,clockFinal(1:193),'-o','LineWidth',1);
+ plot(8:simulation_k,clockFinal(1:193),'-o','LineWidth',1);
 xlabel('同步轮次');
 ylabel('全网最大时钟差/s');
 title('密集网络同步性能')

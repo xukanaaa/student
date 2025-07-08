@@ -40,5 +40,5 @@ for n=1:num
     end
 end
 N(1,1)=H+(sum(deltah))/m;
-N(1,2)=m;
+N(1,2)=m-1;
 end

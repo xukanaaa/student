@@ -191,11 +191,11 @@ offsetFinal=mean(offset);
 clockFinal=mean(clock);
 
 format long;
- plot(1:simulation_k,skewFinal(1:end),'-<','LineWidth',1);
+ %plot(1:simulation_k,skewFinal(1:end),'-<','LineWidth',1);
 % hold on;
 % plot(1:simulation_k,offsetFinal(1:end),'-<','LineWidth',1);
 % hold on;
-% plot(1:simulation_k,clockFinal(1:end),'-<','LineWidth',1);
+ plot(1:simulation_k,clockFinal(1:end),'-<','LineWidth',1);
 % xlabel('同步轮次');
 % ylabel('最大相位偏差');
 grid on;

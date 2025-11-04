@@ -1,3 +1,4 @@
+%根据方差判断网络同步状态，从而动态选取同步邻居数量
 function N=distributed_all_vary_h(A,j,num,count,di,l,h)
 % A:节点自身维护的消息矩阵
 % j:当前同步轮数

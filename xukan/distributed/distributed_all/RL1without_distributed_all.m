@@ -307,6 +307,11 @@ for r=1:2
     for i=101:simulation_k
         x(:,i)=l.*alpha_vary;
     end
+    
+     for i=26:simulation_k
+        y(:,i)=l.*beta+h;
+    end
+   
     %选取每次评估同步效果的时间（每轮结束评估一次）
     for i=1:100
         t(i,1)=(t_local_total(num_drones,i)-beta(num_drones))/alpha(num_drones);

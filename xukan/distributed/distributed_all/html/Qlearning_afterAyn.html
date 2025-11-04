@@ -1,0 +1,1149 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Qlearning_afterAyn</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2025-10-31"><meta name="DC.source" content="Qlearning_afterAyn.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">%&#20351;&#29992;&#39318;&#36718;&#21644;&#26368;&#26032;&#36718;&#27425;&#28040;&#24687;&#29992;&#26469;&#21516;&#27493;&#65292;&#24182;&#19988;&#23545;&#30456;&#23545;&#36816;&#21160;&#20135;&#29983;&#30340;&#20301;&#32622;&#20559;&#31227;&#36827;&#34892;&#34917;&#20607;&#65292;&#21033;&#29992;&#32447;&#24615;&#22238;&#24402;&#26368;&#23567;&#20108;&#20056;&#28388;&#27874;</span>
+<span class="comment">%&#22312;&#31895;&#21516;&#27493;&#20043;&#21518;&#23581;&#35797;&#21033;&#29992;&#24378;&#21270;&#23398;&#20064;&#26469;&#33258;&#36866;&#24212;&#21516;&#27493;&#21608;&#26399;&#12290;</span>
+<span class="comment">%&#31895;&#21516;&#27493;&#38454;&#27573;&#26377;&#34394;&#25311;&#38142;&#25509;&#65292;&#24378;&#21270;&#23398;&#20064;&#38454;&#27573;&#19981;&#37319;&#29992;&#34394;&#25311;&#38142;&#25509;</span>
+
+num_drones = 100; <span class="comment">% &#26080;&#20154;&#26426;&#25968;&#37327;</span>
+space_size = 3000; <span class="comment">% &#31354;&#38388;&#22823;&#23567;&#65288;&#38271;&#12289;&#23485;&#12289;&#39640;&#22343;&#20026;1km&#65289;</span>
+min_speed =80; <span class="comment">% &#26368;&#23567;&#36895;&#24230;&#65288;m/s&#65289;</span>
+max_speed =100; <span class="comment">% &#26368;&#22823;&#36895;&#24230;&#65288;m/s&#65289;</span>
+comm_range = 1500; <span class="comment">% &#36890;&#20449;&#33539;&#22260;&#65288;m&#65289;</span>
+time_step = 0.1; <span class="comment">% &#26102;&#38388;&#27493;&#38271;&#65288;s&#65289;</span>
+speedChange=2;<span class="comment">%&#26080;&#20154;&#26426;&#27599;&#31186;&#36895;&#24230;&#30340;&#35813;&#21464;&#37327;&#65288;&#27491;&#24577;&#20998;&#24067;&#65289;</span>
+simulation_time = 500; <span class="comment">% &#27169;&#25311;&#26102;&#38388;&#65288;s&#65289;</span>
+t_period=2;<span class="comment">%&#21457;&#36865;&#28040;&#24687;&#20266;&#21608;&#26399;</span>
+simulation_k=200;<span class="comment">%&#20223;&#30495;&#36718;&#25968;</span>
+broad=5;<span class="comment">%&#22810;&#37325;&#24191;&#25773;&#19968;&#27425;&#30340;&#24191;&#25773;&#27425;&#25968;</span>
+dt=20e-3;<span class="comment">%&#22810;&#37325;&#24191;&#25773;&#38388;&#38548;</span>
+<span class="comment">%&#19981;&#21516;&#36718;&#27425;&#35843;&#25972;&#21518;&#30340;&#39057;&#20559;&#21644;&#30456;&#20559;</span>
+x=zeros(num_drones,simulation_k);
+y=zeros(num_drones,simulation_k);
+z=zeros(num_drones,simulation_k);
+deltamax=zeros(simulation_k,1);<span class="comment">%&#27599;&#36718;&#36845;&#20195;&#21518;&#20840;&#32593;&#26368;&#22823;&#38047;&#24046;</span>
+var_clock=zeros(simulation_k,1);<span class="comment">%&#27599;&#36718;&#36845;&#20195;&#21518;&#20840;&#32593;&#26102;&#38047;&#20540;&#30340;&#26041;&#24046;</span>
+t=zeros(simulation_k,1);<span class="comment">%&#27599;&#36718;&#36845;&#20195;&#21518;&#29992;&#20110;&#27979;&#35780;&#30340;&#30495;&#23454;&#26102;&#38388;&#65292;&#27492;&#22788;&#36873;&#20026;&#26368;&#21518;&#19968;&#20010;&#21457;&#36865;&#28040;&#24687;&#30340;&#33410;&#28857;&#27599;&#27425;&#21457;&#36865;&#23436;&#30340;&#26102;&#38388;</span>
+speed_change=zeros(num_drones,3);<span class="comment">%&#26080;&#20154;&#26426;&#21021;&#22987;&#21270;&#36895;&#24230;&#25200;&#21160;</span>
+round=3;<span class="comment">%&#33945;&#29305;&#21345;&#27931;&#20223;&#30495;&#36718;&#25968;</span>
+skew=zeros(round,simulation_k);<span class="comment">%&#26410;&#24179;&#22343;&#20043;&#21069;&#30340;&#26368;&#22823;&#39057;&#20559;&#24046;&#20540;&#30697;&#38453;</span>
+skewFinal=zeros(1,simulation_k);<span class="comment">%&#24179;&#22343;&#21518;&#30340;&#27599;&#19968;&#36718;&#39057;&#20559;&#24046;&#20540;&#12290;</span>
+phySkew=80e-6;<span class="comment">%&#29289;&#29702;&#26102;&#38047;&#39057;&#20559;&#26368;&#22823;&#20540;</span>
+phyOffset=1;<span class="comment">%&#29289;&#29702;&#26102;&#38047;&#30456;&#20301;&#20559;&#31227;&#26368;&#22823;&#20540;</span>
+offset=zeros(round,simulation_k);
+clock_var=zeros(round,simulation_k);
+offsetFinal=zeros(1,simulation_k);
+clock=zeros(round,simulation_k);
+clockFinal=zeros(1,simulation_k);
+used_num=0;<span class="comment">%&#27599;&#36718;&#21516;&#27493;&#20351;&#29992;&#30340;&#25968;&#25454;&#37327;</span>
+M=zeros(num_drones+1,2);
+Var_change=zeros(num_drones,1);<span class="comment">%&#23384;&#20648;&#19978;&#19968;&#36718;&#30340;&#26041;&#24046;&#65292;&#29992;&#26469;&#20915;&#23450;&#21516;&#27493;&#36235;&#21183;</span>
+State_old=zeros(num_drones,1);<span class="comment">%&#23384;&#20648;&#19978;&#19968;&#36718;&#30340;&#29366;&#24577;&#65292;&#23558;&#65288;&#26041;&#24046;&#65292;&#36235;&#21183;&#65289;&#26144;&#23556;&#21040;&#21807;&#19968;&#29366;&#24577;&#32034;&#24341;</span>
+
+<span class="keyword">for</span> r=1:3
+    <span class="comment">% &#21021;&#22987;&#21270;&#26080;&#20154;&#26426;&#20301;&#32622;</span>
+    drone_positions = space_size * rand(num_drones, 3);
+    <span class="comment">% &#21021;&#22987;&#21270;&#26080;&#20154;&#26426;&#36895;&#24230;</span>
+    drone_speeds=zeros(num_drones,3);
+    <span class="keyword">for</span> i=1:num_drones
+        <span class="keyword">for</span> j=1:3
+            positive_value=unifrnd(min_speed,max_speed);
+            sign=randi([0,1])*2-1;
+            drone_speeds(i,j)=sign*positive_value;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#29289;&#29702;&#26102;&#38047;&#39057;&#20559;</span>
+    alpha=1-phySkew+(2*phySkew)*rand(num_drones,1);
+    <span class="comment">%&#21021;&#22987;&#21270;&#29289;&#29702;&#26102;&#38047;&#30456;&#20559;</span>
+    beta=-phyOffset+2*phyOffset*rand(num_drones,1);
+    <span class="comment">%&#21021;&#22987;&#21270;&#36923;&#36753;&#26102;&#38047;&#39057;&#29575;&#35843;&#25972;&#21442;&#25968;</span>
+    l=ones(num_drones,1);
+    <span class="comment">%&#21021;&#22987;&#21270;&#36923;&#36753;&#26102;&#38047;&#30456;&#20301;&#35843;&#25972;&#21442;&#25968;</span>
+    h=zeros(num_drones,1);
+    <span class="comment">% &#21021;&#22987;&#21270;&#26080;&#20154;&#26426;&#36890;&#20449;&#37051;&#25509;&#30697;&#38453;</span>
+    comm_matrix = zeros(num_drones);
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#27599;&#20010;&#31163;&#25955;&#26102;&#38388;&#28857;&#30340;&#36317;&#31163;&#30697;&#38453;</span>
+    D=cell(simulation_time/time_step,1);
+    <span class="keyword">for</span> i=1:(simulation_time/time_step)
+        D{i}=zeros(num_drones,num_drones);
+    <span class="keyword">end</span>
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#27599;&#20010;&#31163;&#25955;&#26102;&#38388;&#28857;&#30340;&#36830;&#25509;&#30697;&#38453;</span>
+    I=cell(simulation_time/time_step,1);
+    <span class="keyword">for</span> i=1:(simulation_time/time_step)
+        I{i}=zeros(num_drones,num_drones);
+    <span class="keyword">end</span>
+
+    <span class="comment">% &#27169;&#25311;&#26080;&#20154;&#26426;&#36816;&#21160;</span>
+    <span class="keyword">for</span> k=1:(simulation_time/time_step)
+
+        <span class="comment">%&#27599;&#38548;&#19968;&#31186;&#26356;&#26032;&#26080;&#20154;&#26426;&#36895;&#24230;</span>
+        <span class="keyword">if</span> mod(k,1/time_step)==0
+            speed_change=speedChange*randn(num_drones,3);<span class="comment">%&#26080;&#20154;&#26426;&#36895;&#24230;&#25200;&#21160;</span>
+            drone_speeds=drone_speeds+speed_change;<span class="comment">%&#26356;&#26032;&#25200;&#21160;&#21518;&#30340;&#36895;&#24230;</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% &#26356;&#26032;&#26080;&#20154;&#26426;&#20301;&#32622;</span>
+        drone_positions = drone_positions + drone_speeds * time_step;
+
+        <span class="comment">% &#30830;&#20445;&#26080;&#20154;&#26426;&#19981;&#20250;&#36229;&#20986;&#31354;&#38388;&#36793;&#30028;</span>
+        <span class="keyword">for</span> i=1:num_drones
+            <span class="keyword">if</span> drone_positions(i,1)&lt;0
+                drone_positions(i,1)=-drone_positions(i,1);
+                drone_speeds(i,1)=-drone_speeds(i,1);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> drone_positions(i,1)&gt;space_size
+                drone_positions(i,1)=2*space_size-drone_positions(i,1);
+                drone_speeds(i,1)=-drone_speeds(i,1);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> drone_positions(i,2)&lt;0
+                drone_positions(i,2)=-drone_positions(i,2);
+                drone_speeds(i,2)=-drone_speeds(i,2);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> drone_positions(i,2)&gt;space_size
+                drone_positions(i,2)=2*space_size-drone_positions(i,2);
+                drone_speeds(i,2)=-drone_speeds(i,2);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> drone_positions(i,3)&lt;0
+                drone_positions(i,3)=-drone_positions(i,3);
+                drone_speeds(i,3)=-drone_speeds(i,3);
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> drone_positions(i,3)&gt;space_size
+                drone_positions(i,3)=2*space_size-drone_positions(i,3);
+                drone_speeds(i,3)=-drone_speeds(i,3);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% &#35745;&#31639;&#26080;&#20154;&#26426;&#20043;&#38388;&#30340;&#36317;&#31163;</span>
+        distances = pdist2(drone_positions, drone_positions);
+        D{k}=distances;
+
+        <span class="comment">% &#26356;&#26032;&#36890;&#20449;&#37051;&#25509;&#30697;&#38453;</span>
+        comm_matrix = (distances &lt;= comm_range);
+        comm_matrix = comm_matrix-eye(num_drones,num_drones);
+        I{k}=comm_matrix;
+    <span class="keyword">end</span>
+
+    t_local_total=zeros(num_drones,simulation_k);
+    t_global_total=zeros(num_drones,simulation_k);
+    t_global=(t_period*0.9)*sort(rand(num_drones,1));<span class="comment">%&#21021;&#22987;&#21457;&#36865;&#20840;&#29699;&#26102;&#38388;&#65292;&#21319;&#24207;,&#39044;&#30041;0.1&#20493;&#21608;&#26399;&#20316;&#20026;&#20445;&#25252;jiange</span>
+    t_local=alpha.*t_global+beta;<span class="comment">%&#21021;&#22987;&#21457;&#36865;&#33410;&#28857;&#26102;&#38388;</span>
+    t_local_total(:,1)=t_local;
+    t_global_total(:,1)=t_global;
+
+    <span class="comment">%&#25152;&#26377;&#36718;&#27425;&#20013;&#21508;&#33410;&#28857;&#21457;&#36865;&#28040;&#24687;&#30340;&#26412;&#22320;&#29289;&#29702;&#26102;&#38388;</span>
+    <span class="keyword">for</span> m=2:simulation_k
+        t_local_total(:,m)=t_local+t_period*(m-1)*alpha;
+    <span class="keyword">end</span>
+
+    <span class="comment">%&#25152;&#26377;&#36718;&#27425;&#20013;&#21508;&#33410;&#28857;&#21457;&#36865;&#28040;&#24687;&#30340;&#20840;&#23616;&#26102;&#38388;</span>
+    <span class="keyword">for</span> m=2:simulation_k
+        t_global_total(:,m)=(t_local_total(:,m)-beta)./alpha;
+    <span class="keyword">end</span>
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#27599;&#20010;&#33410;&#28857;&#26412;&#22320;&#30340;&#37051;&#23621;&#39057;&#29575;&#35843;&#25972;&#20449;&#24687;&#21015;&#34920;(&#28040;&#24687;&#36718;&#65292;(&#24403;&#21069;&#37051;&#23621;&#29289;&#29702;&#65292;&#24403;&#21069;&#33258;&#36523;&#29289;&#29702;)*&#24191;&#25773;&#36718;&#25968;&#65292;&#24403;&#21069;&#37051;&#23621;&#36923;&#36753;&#26102;&#38047;&#39057;&#29575;&#35843;&#25972;l,</span>
+    <span class="comment">%flag&#20301;&#65292;&#21482;&#21344;&#35813;&#21015;&#31532;&#19968;&#34892;&#65292;&#19979;&#38754;&#37117;&#26159;0</span>
+    <span class="comment">%&#26368;&#21518;n&#21015;&#65306;&#23545;&#24212;&#37051;&#23621;&#33410;&#28857;&#30340;&#20108;&#36339;&#37051;&#23621;&#20449;&#24687;&#65292;&#27599;&#27425;&#26356;&#26032;&#23436;&#35201;&#28165;&#38646;)</span>
+    <span class="comment">%&#21069;n&#34892;&#34920;&#31034;&#39318;&#27425;&#25509;&#25910;&#21040;&#26576;&#33410;&#28857;&#30340;&#28040;&#24687;&#25968;&#25454;</span>
+    <span class="comment">%&#21518;n&#34892;&#34920;&#31034;&#26368;&#26032;&#25509;&#25910;&#21040;&#26576;&#33410;&#28857;&#30340;&#28040;&#24687;&#25968;&#25454;</span>
+    Neb_list_fre=cell(num_drones,1);
+    <span class="keyword">for</span> i=1:num_drones
+        Neb_list_fre{i}=zeros(num_drones*2,broad*2+2+1+num_drones);
+    <span class="keyword">end</span>
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#27599;&#20010;&#33410;&#28857;&#26412;&#22320;&#30340;&#30456;&#20301;&#37051;&#23621;&#20449;&#24687;&#21015;&#34920;(&#28040;&#24687;&#36718;&#65292;(&#24403;&#21069;&#37051;&#23621;&#29289;&#29702;&#65292;&#24403;&#21069;&#33258;&#36523;&#29289;&#29702;)*&#24191;&#25773;&#36718;&#25968;&#65292;&#37051;&#23621;&#36923;&#36753;&#26102;&#38047;&#39057;&#29575;&#35843;&#25972;l&#65292;&#37051;&#23621;&#36923;&#36753;&#26102;&#38047;&#30456;&#20301;&#35843;&#25972;h</span>
+    <span class="comment">%,&#19982;&#36825;&#20010;&#37051;&#23621;&#30340;&#36317;&#31163;&#20135;&#29983;&#30340;&#26102;&#24310;&#65288;&#38543;&#30528;&#36816;&#21160;&#20250;&#23454;&#26102;&#34917;&#20607;&#21464;&#21270;&#65289;,&#26368;&#21518;i&#21015;&#34920;&#31034;&#36825;&#20010;&#37051;&#23621;&#25152;&#24102;&#26469;&#30340;&#34394;&#25311;&#38142;&#25509;&#30340;&#26102;&#38047;&#30456;&#20301;&#24046;&#20540;)</span>
+    <span class="comment">%&#21069;n&#34892;&#34920;&#31034;&#39318;&#27425;&#25509;&#25910;&#21040;&#26576;&#33410;&#28857;&#30340;&#28040;&#24687;&#25968;&#25454;</span>
+    Neb_list_pha=cell(num_drones,1);
+    <span class="keyword">for</span> i=1:num_drones
+        Neb_list_pha{i}=zeros(num_drones,1+broad*2+2+1+num_drones);
+    <span class="keyword">end</span>
+
+    <span class="keyword">for</span> j=1:25 <span class="comment">%&#21069;25&#36718;&#23436;&#25104;&#21021;&#27493;&#21516;&#27493;</span>
+        <span class="keyword">for</span> i=1:num_drones
+            [~,d]=sort(t_global_total(:,j));
+
+
+            A=I{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};<span class="comment">%&#21457;&#36865;&#28040;&#24687;&#26102;&#21051;&#30340;&#36830;&#25509;&#30697;&#38453;</span>
+            B1=D{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};<span class="comment">%&#21457;&#36865;&#28040;&#24687;&#26102;&#21051;&#30340;&#36317;&#31163;&#30697;&#38453;</span>
+            B2=D{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))+1};
+
+            Vara=zeros(num_drones,1);
+            Atemp=Neb_list_pha{d(i)};
+            Btemp=zeros(2,1);<span class="comment">%&#31532;&#19968;&#34892;&#34920;&#31034;&#37051;&#23621;&#30340;&#36923;&#36753;&#26102;&#38047;&#65292;&#31532;&#20108;&#34892;&#34920;&#31034;&#33258;&#36523;&#30340;&#36923;&#36753;&#26102;&#38047;</span>
+            <span class="keyword">for</span> n=1:num_drones
+                <span class="keyword">if</span> Atemp(n,1)&gt;=j-1
+
+                    Atemp(n,2)=Atemp(n,2)-Atemp(n,14);<span class="comment">%&#20256;&#25773;&#26102;&#24310;&#34917;&#20607;</span>
+
+
+                    Btemp(1,1)=Atemp(n,2)*Atemp(n,12)+Atemp(n,13);
+                    Btemp(2,1)=Atemp(n,3)*l(d(i),1)+h(d(i),1);
+                    Vara(n,1)=Btemp(1,1)-Btemp(2,1);
+
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            Var_change(d(i),1)=var(Vara(Vara ~= 0));<span class="comment">%&#26041;&#24046;&#21021;&#22987;&#21270;</span>
+
+            <span class="comment">%&#33410;&#28857;&#29366;&#24577;&#21021;&#22987;&#21270;</span>
+            temp_int=ceil(Var_change(d(i),1)*(1e11));
+            <span class="keyword">if</span> temp_int&lt;=0
+                temp_int=1;
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> temp_int&gt;=100
+                temp_int=100;
+            <span class="keyword">end</span>
+            State_old(d(i),1)=(temp_int-1)*3+3;
+
+            <span class="comment">%&#31532;&#19968;&#36718;&#19981;&#26356;&#26032;&#65292;&#20174;&#31532;&#20108;&#36718;&#24320;&#22987;</span>
+            <span class="keyword">if</span> j&gt;=2
+                M=distributed_all_l(Neb_list_fre{d(i)},j,num_drones,l(d(i),1));<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#39057;&#20559;&#21442;&#25968;</span>
+                <span class="comment">%&#36825;&#20010;&#36820;&#22238;&#30340;M&#30697;&#38453;&#20854;&#23454;&#21253;&#21547;&#20102;&#22312;&#36825;&#19968;&#36718;&#26356;&#26032;&#20013;&#25910;&#21040;&#30495;&#23454;&#37051;&#23621;&#30340;&#945;ij*l&#30340;&#20540;&#65292;&#21518;&#38754;&#24191;&#25773;&#21487;&#20197;&#25918;&#21040;&#35813;&#33410;&#28857;&#25658;&#24102;&#30340;&#34394;&#25311;&#20449;&#24687;&#21015;&#34920;&#20013;&#12290;</span>
+                l(d(i),1)=M(1,1);<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#39057;&#20559;&#21442;&#25968;</span>
+                used_num=M(1,2);<span class="comment">%&#21462;&#20986;&#26356;&#26032;&#20351;&#29992;&#30340;&#25968;&#25454;&#37327;&#65292;&#20915;&#23450;&#19979;&#19968;&#36718;&#26159;&#21542;&#24191;&#25773;&#27714;&#21161;&#20449;&#24687;&#65292;&#35753;&#25509;&#25910;&#21040;&#35813;&#20449;&#24687;&#30340;&#37051;&#23621;&#33410;&#28857;&#24191;&#25773;&#20108;&#36339;&#20449;&#24687;&#12290;</span>
+                <span class="comment">%&#26356;&#26032;&#23436;&#20043;&#21518;&#65292;&#25226;&#21491;&#20391;n&#21015;&#20851;&#20110;&#20108;&#36339;&#33410;&#28857;&#30340;&#20449;&#24687;&#28165;&#38646;(&#39057;&#29575;)</span>
+                E=Neb_list_fre{d(i)};
+                E(:, 14:end)=0;
+                Neb_list_fre{d(i)}=E;
+
+                N=distributed_all_h(Neb_list_pha{d(i)},j,l(d(i),1),h(d(i),1),num_drones);<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#30456;&#20559;&#21442;&#25968;</span>
+                h(d(i),1)=N(1,1);<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#30456;&#20559;&#21442;&#25968;</span>
+                <span class="comment">%&#26356;&#26032;&#23436;&#20043;&#21518;&#65292;&#25226;&#21491;&#20391;n&#21015;&#20851;&#20110;&#20108;&#36339;&#33410;&#28857;&#30340;&#20449;&#24687;&#28165;&#38646;(&#30456;&#20301;)</span>
+                E=Neb_list_pha{d(i)};
+                E(:, 15:end)=0;
+                Neb_list_pha{d(i)}=E;
+            <span class="keyword">end</span>
+
+
+            F1=Neb_list_fre{d(i)};<span class="comment">%&#24191;&#25773;&#33410;&#28857;&#30340;&#33258;&#36523;&#30340;&#28040;&#24687;&#30697;&#38453;</span>
+
+            <span class="comment">%&#26816;&#26597;d(i)&#33410;&#28857;&#21457;&#36865;&#26102;&#19982;&#20854;&#26377;&#36830;&#25509;&#30340;&#20854;&#20313;&#33410;&#28857;&#65292;&#26356;&#26032;&#36830;&#25509;&#33410;&#28857;&#30340;&#37051;&#23621;&#20449;&#24687;&#21015;&#34920;</span>
+            <span class="keyword">for</span> k=1:num_drones
+                <span class="keyword">if</span> A(d(i),k)==1
+
+                    F=Neb_list_fre{k};<span class="comment">%&#39057;&#29575;&#30697;&#38453;</span>
+                    P=Neb_list_pha{k};<span class="comment">%&#30456;&#20301;&#30697;&#38453;</span>
+                    <span class="comment">%&#23545;&#20110;&#33258;&#24049;&#19978;&#19968;&#36718;&#29992;&#20110;&#21516;&#27493;&#37051;&#23621;&#23567;&#20110;3&#26102;&#65292;&#21521;&#25152;&#26377;&#37051;&#23621;&#21457;&#36865;&#27714;&#21161;&#65292;&#20462;&#25913;&#37051;&#23621;&#30340;flag&#20026;1&#65292;</span>
+                    <span class="comment">%&#35813;&#37051;&#23621;&#26816;&#27979;&#21040;flag&#20026;1&#26102;&#65292;&#21017;&#22312;&#19979;&#27425;&#24191;&#25773;&#20013;&#38468;&#21152;&#33258;&#24049;&#30340;&#20108;&#36339;&#20449;&#24687;</span>
+                    <span class="keyword">if</span> j&gt;=2 &amp;&amp; used_num&lt;=5
+                        F(1,13)=1;
+                    <span class="keyword">end</span>
+                    <span class="comment">%&#39318;&#27425;&#25509;&#25910;&#21040;&#30340;&#28040;&#24687;&#65288;&#19981;&#31649;&#26159;&#31532;&#20960;&#36718;&#65289;&#65292;&#23384;&#25918;&#22312;&#21069;n&#34892;&#65292;n&#34920;&#31034;&#26080;&#20154;&#26426;&#24635;&#25968;</span>
+                    <span class="keyword">if</span> F(d(i),1)==0
+                        F(d(i),1)=j;
+                        P(d(i),1)=j;
+                        <span class="comment">%&#22635;&#20805;&#37051;&#23621;&#21015;&#34920;&#20013;&#39318;&#27425;&#25509;&#25910;&#21040;&#35813;&#33410;&#28857;&#20449;&#24687;&#30340;&#25968;&#25454;(&#39057;&#29575;&#21644;&#30456;&#20301;&#30697;&#38453;&#37117;&#26377;)</span>
+                        <span class="keyword">for</span> k1=1:5
+                            F(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
+                            P(d(i),2*k1)=F(d(i),2*k1);
+                        <span class="keyword">end</span>
+
+                        <span class="keyword">for</span> k2=1:5
+                            F(d(i),2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-<span class="keyword">...</span>
+                                beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                            P(d(i),2*k2+1)=F(d(i),2*k2+1);
+                        <span class="keyword">end</span>
+                        F(d(i),12)=l(d(i),1);
+                        P(d(i),12)=l(d(i),1);
+                        P(d(i),13)=h(d(i),1);
+                        <span class="comment">%&#39318;&#27425;&#25910;&#21040;&#30456;&#20301;&#28040;&#24687;&#65292;&#21033;&#29992;&#21452;&#21521;&#28040;&#24687;&#20132;&#25442;&#35745;&#31639;&#36317;&#31163;&#26102;&#24310;</span>
+                        T1=F(d(i),2);
+                        T2=F(d(i),3);
+                        T3=T2+20e-3;
+                        T4=(((T3-beta(k,1))/(alpha(k,1)))+B1(d(i),k)/3e8)*alpha(d(i),1)+beta(d(i),1)+5e-9*randn;
+                        Td=(T2+T4-T3-T1)/2;
+                        P(d(i),14)=Td;
+
+                        <span class="comment">%&#21028;&#26029;&#26159;&#21542;&#24448;&#37051;&#23621;&#28040;&#24687;&#21015;&#34920;&#20013;&#21152;&#20837;&#24403;&#21069;&#24191;&#25773;&#33410;&#28857;&#30340;&#20108;&#36339;&#20449;&#24687;(&#39057;&#29575;&#21644;&#30456;&#20301;)&#65292;&#22914;&#26524;&#24191;&#25773;&#33410;&#28857;flag=1&#65292;&#21017;&#38656;&#35201;&#28155;&#21152;</span>
+                        <span class="keyword">if</span> F1(1,13)==1
+                            <span class="keyword">for</span> k3=2:num_drones+1
+                                <span class="keyword">if</span> M(k3,1)&gt;=j-1
+                                    F(d(i),13+k3-1)=M(k3,2);
+                                <span class="keyword">end</span>
+                                <span class="keyword">if</span> N(k3,1)&gt;=j-1
+                                    P(d(i),13+k3)=N(k3,2);
+                                <span class="keyword">end</span>
+                            <span class="keyword">end</span>
+                        <span class="keyword">end</span>
+                        Neb_list_fre{k}=F;
+                        Neb_list_pha{k}=P;
+                    <span class="keyword">end</span>
+
+                    <span class="comment">%&#38750;&#39318;&#27425;&#26368;&#26032;&#25509;&#21463;&#21040;&#30340;&#28040;&#24687;&#65288;&#19981;&#31649;&#26159;&#37027;&#19968;&#36718;&#65289;&#65292;</span>
+                    <span class="comment">%&#39057;&#29575;&#28040;&#24687;&#23384;&#25918;&#22312;&#31532;n+1&#21040;2n&#34892;&#65292;&#29992;&#20110;&#35745;&#31639;&#30340;&#25968;&#25454;&#26159;&#39318;&#27425;&#25968;&#25454;&#21644;&#26368;&#26032;&#25968;&#25454;</span>
+                    <span class="comment">%&#30456;&#20301;&#28040;&#24687;&#39318;&#20808;&#32463;&#36807;Td&#34917;&#20607;&#65292;&#28982;&#21518;&#26356;&#26032;&#31532;&#19968;&#36718;</span>
+                    <span class="keyword">if</span> F(d(i),1)~=0
+                        F(d(i)+num_drones,1)=j;
+                        P(d(i),1)=j;
+                        <span class="keyword">for</span> k1=1:5
+                            F(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
+                        <span class="keyword">end</span>
+
+                        <span class="keyword">for</span> k2=1:5
+                            F(d(i)+num_drones,2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-<span class="keyword">...</span>
+                                beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                        <span class="keyword">end</span>
+                        deltaTd=compensatePha(F,P,d(i),num_drones);<span class="comment">%&#23545;&#26032;&#28040;&#24687;&#30340;&#30456;&#20301;&#28040;&#24687;&#30340;d&#36827;&#34892;&#21160;&#24577;&#26356;&#26032;</span>
+                        <span class="comment">%&#26356;&#26032;&#30456;&#20301;&#30697;&#38453;&#30340;&#20540;</span>
+                        <span class="keyword">for</span> k1=1:5
+                            P(d(i),2*k1)=F(d(i)+num_drones,2*k1);
+                            P(d(i),2*k1+1)=F(d(i)+num_drones,2*k1+1);
+                        <span class="keyword">end</span>
+                        P(d(i),12)=l(d(i),1);
+                        P(d(i),13)=h(d(i),1);
+                        P(d(i),14)=P(d(i),14)+deltaTd;
+                        F(d(i)+num_drones,12)=l(d(i),1);
+
+                        <span class="comment">%&#21028;&#26029;&#26159;&#21542;&#24448;&#37051;&#23621;&#28040;&#24687;&#21015;&#34920;&#20013;&#21152;&#20837;&#24403;&#21069;&#24191;&#25773;&#33410;&#28857;&#30340;&#20108;&#36339;&#20449;&#24687;(&#39057;&#29575;&#21644;&#30456;&#20301;)&#65292;&#22914;&#26524;&#24191;&#25773;&#33410;&#28857;flag=1&#65292;&#21017;&#38656;&#35201;&#28155;&#21152;</span>
+                        <span class="keyword">if</span> F1(1,13)==1
+                            <span class="keyword">for</span> k3=2:num_drones+1
+                                <span class="keyword">if</span> M(k3,1)&gt;=j-1
+                                    F(d(i)+num_drones,13+k3-1)=M(k3,2);
+                                <span class="keyword">end</span>
+                                <span class="keyword">if</span> N(k3,1)&gt;=j-1
+                                    P(d(i),13+k3)=N(k3,2);
+                                <span class="keyword">end</span>
+                            <span class="keyword">end</span>
+                        <span class="keyword">end</span>
+                        Neb_list_fre{k}=F;
+                        Neb_list_pha{k}=P;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            <span class="comment">%&#24403;&#25152;&#26377;&#30340;&#28040;&#24687;&#37117;&#24191;&#25773;&#23436;&#27605;&#21518;&#65292;&#24191;&#25773;&#33410;&#28857;&#30340;flag&#35201;&#37325;&#26032;&#32622;&#38646;</span>
+            F1(1,13)=0;
+            Neb_list_fre{d(i)}=F1;
+        <span class="keyword">end</span>
+        <span class="comment">%&#26368;&#32456;&#35843;&#25972;&#30340;&#36923;&#36753;&#26102;&#38047;&#39057;&#20559;</span>
+        x(:,j)=l.*alpha;
+        <span class="comment">%&#26368;&#32456;&#35843;&#25972;&#30340;&#36923;&#36753;&#26102;&#38047;&#30456;&#20559;</span>
+        y(:,j)=l.*beta+h;
+        z(:,j)=h;
+    <span class="keyword">end</span>
+
+    <span class="keyword">for</span> i=26:simulation_k
+        x(:,i)=l.*alpha;
+    <span class="keyword">end</span>
+    <span class="keyword">for</span> i=26:simulation_k
+        y(:,i)=l.*beta+h;
+    <span class="keyword">end</span>
+    <span class="comment">%&#36873;&#21462;&#27599;&#27425;&#35780;&#20272;&#21516;&#27493;&#25928;&#26524;&#30340;&#26102;&#38388;&#65288;&#27599;&#36718;&#32467;&#26463;&#35780;&#20272;&#19968;&#27425;&#65289;</span>
+    <span class="keyword">for</span> i=1:simulation_k
+        t(i,1)=(t_local_total(num_drones,i)-beta(num_drones))/alpha(num_drones);
+    <span class="keyword">end</span>
+    <span class="comment">%&#27599;&#36718;&#32467;&#26463;&#21518;&#30340;&#26102;&#38047;&#20559;&#24046;</span>
+    <span class="keyword">for</span> k=1:simulation_k
+        deltamax(k,1)=max(x(:,k)*t(k,1)+y(:,k))-min(x(:,k)*t(k,1)+y(:,k));
+    <span class="keyword">end</span>
+    <span class="comment">%&#27599;&#36718;&#32467;&#26463;&#21518;&#21516;&#27493;&#21518;&#26102;&#38047;&#30340;&#26041;&#24046;</span>
+    <span class="keyword">for</span> k=1:simulation_k
+        var_clock(k,1)=var(x(:,k)*t(k,1)+y(:,k));
+    <span class="keyword">end</span>
+    x1=zeros(simulation_k,1);
+    y1=zeros(simulation_k,1);
+    <span class="comment">%&#27599;&#36718;&#32467;&#26463;&#21518;&#30340;&#39057;&#29575;&#20559;&#24046;</span>
+    <span class="keyword">for</span> c=1:simulation_k
+        x1(c,1)=max(x(:,c))-min(x(:,c));
+    <span class="keyword">end</span>
+    <span class="comment">%&#27599;&#36718;&#32467;&#26463;&#21518;&#30340;&#30456;&#20301;&#20559;&#24046;</span>
+    <span class="keyword">for</span> d=1:simulation_k
+        y1(d,1)=max(y(:,d))-min(y(:,d));
+    <span class="keyword">end</span>
+    <span class="comment">%&#19968;&#20849;&#36827;&#34892;5&#27425;&#33945;&#29305;&#21345;&#27931;&#20223;&#30495;&#65292;r=5&#65292;&#27599;&#19968;&#34892;&#34920;&#31034;&#21508;&#36718;&#27425;&#21516;&#27493;&#21518;&#30340;&#20840;&#32593;&#26368;&#22823;&#39057;&#29575;&#24046;</span>
+    skew(r,:)=x1';
+    offset(r,:)=y1';
+    clock(r,:)=deltamax';
+    clock_var(r,:)=var_clock';
+
+
+    <span class="comment">%&#21021;&#27493;&#21516;&#27493;&#20043;&#21518;&#65292;&#37319;&#29992;&#24378;&#21270;&#23398;&#20064;&#26041;&#27861;&#33258;&#36866;&#24212;&#35843;&#25972;&#21608;&#26399;&#12290;&#26435;&#34913;&#21516;&#27493;&#31934;&#24230;&#21644;&#36890;&#20449;&#24320;&#38144;</span>
+    <span class="comment">%&#36825;&#31181;&#24773;&#20917;&#19979;&#65292;&#39057;&#29575;&#21516;&#27493;&#21644;&#30456;&#20301;&#21516;&#27493;&#26080;&#38656;&#20351;&#29992;&#34394;&#25311;&#38142;&#25509;</span>
+    <span class="comment">%&#19981;&#37319;&#29992;&#21516;&#27493;&#36718;&#27425;&#65292;&#27599;&#20010;&#33410;&#28857;&#20316;&#20026;&#29420;&#31435;&#26234;&#33021;&#20307;&#23398;&#20064;&#19981;&#21516;&#24773;&#20917;&#19979;&#30340;&#21608;&#26399;&#35843;&#25972;&#31574;&#30053;&#12290;</span>
+    <span class="comment">%&#21160;&#20316;&#31354;&#38388;&#20026;-10&#65292;-5&#65292;-2&#65292;-1,0,1,2,5,10&#65292;&#21160;&#20316;&#31354;&#38388;&#22823;&#23567;&#20026;9</span>
+    <span class="comment">%&#26041;&#24046;&#31163;&#25955;&#28857;&#20026;1~100*10^-11,&#19968;&#20849;100&#20010;&#29366;&#24577;&#65292;&#20854;&#20013;&#26368;&#21518;50&#20010;&#29366;&#24577;&#26041;&#24046;&#24050;&#32463;&#19981;&#21487;&#25509;&#21463;&#65292;&#27599;&#20010;&#29366;&#24577;&#23545;&#24212;up&#65292;down&#65292;equal&#19977;&#20010;&#36235;&#21183;&#65292;&#29366;&#24577;&#31354;&#38388;&#22823;&#23567;&#20026;300</span>
+
+    Qtable=zeros(300,9);<span class="comment">%&#21021;&#22987;&#21270;Q&#34920;&#26684;</span>
+    Tsend=zeros(num_drones,3);<span class="comment">%&#23384;&#20648;&#27599;&#20010;&#33410;&#28857;&#19979;&#27425;&#24191;&#25773;&#30340;&#20840;&#23616;&#26102;&#38388;&#12289;&#35843;&#25972;&#23436;&#30340;&#21516;&#27493;&#21608;&#26399;&#21644;&#35843;&#25972;&#21608;&#26399;&#30340;&#21160;&#20316;</span>
+    Tchange=100*ones(num_drones,200);<span class="comment">%&#23384;&#20648;&#27599;&#20010;&#33410;&#28857;&#21608;&#26399;&#30340;&#21464;&#21270;&#35843;&#25972;&#36807;&#31243;&#12290;</span>
+    Sold=zeros(num_drones,2);<span class="comment">%&#23384;&#20648;&#19978;&#19968;&#20010;&#29366;&#24577;&#23545;&#65288;&#26041;&#24046;&#65292;&#36235;&#21183;&#65289;</span>
+
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#27599;&#20010;&#33410;&#28857;&#26412;&#22320;&#30340;&#37051;&#23621;&#39057;&#29575;&#35843;&#25972;&#20449;&#24687;&#21015;&#34920;(&#28040;&#24687;&#36718;&#65292;(&#24403;&#21069;&#37051;&#23621;&#29289;&#29702;&#65292;&#24403;&#21069;&#33258;&#36523;&#29289;&#29702;)*&#24191;&#25773;&#36718;&#25968;&#65292;&#24403;&#21069;&#37051;&#23621;&#36923;&#36753;&#26102;&#38047;&#39057;&#29575;&#35843;&#25972;l</span>
+    <span class="comment">%&#21069;n&#34892;&#34920;&#31034;&#39318;&#27425;&#25509;&#25910;&#21040;&#26576;&#33410;&#28857;&#30340;&#28040;&#24687;&#25968;&#25454;</span>
+    <span class="comment">%&#21518;n&#34892;&#34920;&#31034;&#26368;&#26032;&#25509;&#25910;&#21040;&#26576;&#33410;&#28857;&#30340;&#28040;&#24687;&#25968;&#25454;</span>
+    Neb_list_fre_RL=cell(num_drones,1);
+    <span class="keyword">for</span> i=1:num_drones
+        Neb_list_fre_RL{i}=zeros(num_drones*2,broad*2+2);
+    <span class="keyword">end</span>
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#27599;&#20010;&#33410;&#28857;&#26412;&#22320;&#30340;&#30456;&#20301;&#37051;&#23621;&#20449;&#24687;&#21015;&#34920;(&#28040;&#24687;&#36718;&#65292;(&#24403;&#21069;&#37051;&#23621;&#29289;&#29702;&#65292;&#24403;&#21069;&#33258;&#36523;&#29289;&#29702;)*&#24191;&#25773;&#36718;&#25968;&#65292;&#37051;&#23621;&#36923;&#36753;&#26102;&#38047;&#39057;&#29575;&#35843;&#25972;l&#65292;&#37051;&#23621;&#36923;&#36753;&#26102;&#38047;&#30456;&#20301;&#35843;&#25972;h</span>
+    <span class="comment">%,&#19982;&#36825;&#20010;&#37051;&#23621;&#30340;&#36317;&#31163;&#20135;&#29983;&#30340;&#26102;&#24310;&#65288;&#38543;&#30528;&#36816;&#21160;&#20250;&#23454;&#26102;&#34917;&#20607;&#21464;&#21270;&#65289;)</span>
+    <span class="comment">%&#21069;n&#34892;&#34920;&#31034;&#39318;&#27425;&#25509;&#25910;&#21040;&#26576;&#33410;&#28857;&#30340;&#28040;&#24687;&#25968;&#25454;</span>
+    Neb_list_pha_RL=cell(num_drones,1);
+    <span class="keyword">for</span> i=1:num_drones
+        Neb_list_pha_RL{i}=zeros(num_drones,1+broad*2+2+1);
+    <span class="keyword">end</span>
+    <span class="comment">%&#27599;&#27425;&#20174;&#20013;&#36873;&#21462;&#26368;&#23567;&#20540;&#33410;&#28857;&#24191;&#25773;&#65288;&#24191;&#25773;&#21069;&#36827;&#34892;&#21516;&#27493;&#65289;&#65292;&#24191;&#25773;&#36807;&#31243;&#20462;&#25913;&#30452;&#36830;&#37051;&#23621;&#21442;&#25968;&#65292;&#24191;&#25773;&#21518;&#20462;&#25913;&#19979;&#27425;&#24191;&#25773;&#26102;&#38388;</span>
+    <span class="comment">%&#27599;&#27425;&#36827;&#34892;&#21516;&#27493;&#26102;&#65292;&#36890;&#36807;&#27604;&#36739;&#26412;&#27425;&#19982;&#19978;&#27425;&#21516;&#27493;&#21069;&#26041;&#24046;&#65292;&#33719;&#24471;&#19978;&#27425;&#34892;&#20026;&#21518;&#31995;&#32479;&#29366;&#24577;&#65292;&#21033;&#29992;&#22870;&#21169;&#20989;&#25968;&#26356;&#26032;&#19978;&#19968;&#29366;&#24577;&#19978;&#19968;&#21160;&#20316;&#30340;Q&#20540;</span>
+
+    <span class="comment">%&#21021;&#22987;&#21270;&#21457;&#23556;&#26102;&#38388;Tsend&#65292;&#23558;&#20854;&#36171;&#20540;&#20026;&#31895;&#21516;&#27493;&#20043;&#21518;&#30340;&#19979;&#19968;&#36718;&#20840;&#23616;&#26102;&#38388;&#65292;&#24182;&#19988;&#24403;&#21069;&#21608;&#26399;&#35774;&#32622;&#20026;2&#65292;&#19979;&#27425;&#35843;&#25972;&#35774;&#32622;&#20026;0</span>
+    Tsend(:,1)=(t_local_total(:,26)-beta)./alpha;
+    Tsend(:,2)=2 * ones(num_drones, 1);
+    Tsend(:,3)=zeros(num_drones, 1);
+
+    <span class="comment">%&#24320;&#22987;Qlearning&#31639;&#27861;&#36845;&#20195;&#65292;&#27599;&#27425;&#36873;&#21462;&#24403;&#21069;&#21457;&#23556;&#26102;&#38388;&#26368;&#23567;&#20540;&#33410;&#28857;&#65292;&#20808;&#24191;&#25773;&#65292;&#20877;&#26356;&#26032;</span>
+    <span class="keyword">while</span>  min(Tsend(:, 1))&lt;500
+
+        <span class="comment">%&#20808;&#21462;&#24191;&#25773;&#26102;&#38388;&#26368;&#23567;&#33410;&#28857;&#24191;&#25773;&#65292;&#24191;&#25773;&#23436;&#25104;&#21518;&#25353;&#29031;2,3&#21015;&#25968;&#25454;&#26356;&#26032;&#19979;&#27425;&#24191;&#25773;&#20840;&#23616;&#26102;&#38388;</span>
+        [min_value, min_index] = min(Tsend(:, 1));
+        <span class="comment">%&#33719;&#21462;&#24191;&#25773;&#26102;&#21051;&#30340;&#36830;&#25509;&#30697;&#38453;&#19982;&#36317;&#31163;&#30697;&#38453;</span>
+        A_RL=I{ceil(min_value/time_step)};
+        B1_RL=D{ceil(min_value/time_step)};
+
+        <span class="comment">%&#26356;&#26032;&#37051;&#23621;&#30340;&#39057;&#29575;&#21516;&#27493;&#30697;&#38453;&#21644;&#30456;&#20301;&#21516;&#27493;&#30697;&#38453;</span>
+        <span class="comment">%&#39057;&#29575;&#35843;&#25972;&#31532;&#19968;&#21015;&#20026;flag&#20301;&#65292;1&#34920;&#31034;&#26368;&#26032;&#28040;&#24687;&#65292;&#27599;&#27425;&#21516;&#27493;&#21518;&#35201;&#25226;&#20026;1&#30340;flag&#32622;&#38646;&#12290;</span>
+        <span class="comment">%&#26816;&#26597;min_index&#33410;&#28857;&#21457;&#36865;&#26102;&#19982;&#20854;&#26377;&#36830;&#25509;&#30340;&#20854;&#20313;&#33410;&#28857;&#65292;&#26356;&#26032;&#36830;&#25509;&#33410;&#28857;&#30340;&#37051;&#23621;&#20449;&#24687;&#21015;&#34920;</span>
+        <span class="keyword">for</span> k=1:num_drones
+            <span class="keyword">if</span> A_RL(min_index,k)==1
+
+                F_RL=Neb_list_fre_RL{k};<span class="comment">%&#39057;&#29575;&#30697;&#38453;</span>
+                P_RL=Neb_list_pha_RL{k};<span class="comment">%&#30456;&#20301;&#30697;&#38453;</span>
+
+                <span class="comment">%&#39318;&#27425;&#25509;&#25910;&#21040;&#30340;&#28040;&#24687;&#65288;&#19981;&#31649;&#26159;&#31532;&#20960;&#36718;&#65289;&#65292;&#23384;&#25918;&#22312;&#21069;n&#34892;&#65292;n&#34920;&#31034;&#26080;&#20154;&#26426;&#24635;&#25968;</span>
+                <span class="keyword">if</span> F_RL(min_index,2)==0
+                    F_RL(min_index,1)=1;
+                    P_RL(min_index,1)=1;
+                    <span class="comment">%&#22635;&#20805;&#37051;&#23621;&#21015;&#34920;&#20013;&#39318;&#27425;&#25509;&#25910;&#21040;&#35813;&#33410;&#28857;&#20449;&#24687;&#30340;&#25968;&#25454;(&#39057;&#29575;&#21644;&#30456;&#20301;&#30697;&#38453;&#37117;&#26377;)</span>
+                    <span class="keyword">for</span> k1=1:5
+                        F_RL(min_index,2*k1)=min_value*alpha(min_index,1)+beta(min_index,1)+dt*(k1-1)+5e-9*randn;
+                        P_RL(min_index,2*k1)=F_RL(d(i),2*k1);
+                    <span class="keyword">end</span>
+
+                    <span class="keyword">for</span> k2=1:5
+                        F_RL(min_index,2*k2+1)=(((min_value*alpha(min_index,1)+beta(min_index,1)+(k2-1)*dt-<span class="keyword">...</span>
+                            beta(min_index,1))/(alpha(min_index,1)))+B1_RL(min_index,k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                        P_RL(min_index,2*k2+1)=F_RL(min_index,2*k2+1);
+                    <span class="keyword">end</span>
+                    F_RL(min_index,12)=l(min_index,1);
+                    P_RL(min_index,12)=l(min_index,1);
+                    P_RL(min_index,13)=h(min_index,1);
+
+                    <span class="comment">%&#39318;&#27425;&#25910;&#21040;&#30456;&#20301;&#28040;&#24687;&#65292;&#21033;&#29992;&#21452;&#21521;&#28040;&#24687;&#20132;&#25442;&#35745;&#31639;&#36317;&#31163;&#26102;&#24310;</span>
+                    T1=F_RL(min_index,2);
+                    T2=F_RL(min_index,3);
+                    T3=T2+20e-3;
+                    T4=(((T3-beta(k,1))/(alpha(k,1)))+B1_RL(min_index,k)/3e8)*alpha(min_index,1)+beta(min_index,1)+5e-9*randn;
+                    Td=(T2+T4-T3-T1)/2;
+                    P_RL(min_index,14)=Td;
+
+                    Neb_list_fre_RL{k}=F_RL;
+                    Neb_list_pha_RL{k}=P_RL;
+                <span class="keyword">end</span>
+
+                <span class="comment">%&#38750;&#39318;&#27425;&#26368;&#26032;&#25509;&#21463;&#21040;&#30340;&#28040;&#24687;&#65288;&#19981;&#31649;&#26159;&#37027;&#19968;&#36718;&#65289;&#65292;</span>
+                <span class="comment">%&#39057;&#29575;&#28040;&#24687;&#23384;&#25918;&#22312;&#31532;n+1&#21040;2n&#34892;&#65292;&#29992;&#20110;&#35745;&#31639;&#30340;&#25968;&#25454;&#26159;&#39318;&#27425;&#25968;&#25454;&#21644;&#26368;&#26032;&#25968;&#25454;</span>
+                <span class="comment">%&#30456;&#20301;&#28040;&#24687;&#39318;&#20808;&#32463;&#36807;Td&#34917;&#20607;&#65292;&#28982;&#21518;&#26356;&#26032;&#31532;&#19968;&#36718;</span>
+                <span class="keyword">if</span> F_RL(min_index,2)~=0
+                    F_RL(min_index+num_drones,1)=1;
+                    P_RL(min_index,1)=1;
+                    <span class="keyword">for</span> k1=1:5
+                        F_RL(min_index+num_drones,2*k1)=min_value*alpha(min_index,1)+beta(min_index,1)+dt*(k1-1)+5e-9*randn;
+                    <span class="keyword">end</span>
+
+                    <span class="keyword">for</span> k2=1:5
+                        F_RL(min_index+num_drones,2*k2+1)=(((min_value*alpha(min_index,1)+beta(min_index,1)+(k2-1)*dt-<span class="keyword">...</span>
+                            beta(min_index,1))/(alpha(min_index,1)))+B1_RL(min_index,k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                    <span class="keyword">end</span>
+                    deltaTd_RL=compensatePha_RL(F_RL,P_RL,min_index,num_drones);<span class="comment">%&#23545;&#26032;&#28040;&#24687;&#30340;&#30456;&#20301;&#28040;&#24687;&#30340;d&#36827;&#34892;&#21160;&#24577;&#26356;&#26032;</span>
+                    <span class="comment">%&#26356;&#26032;&#30456;&#20301;&#30697;&#38453;&#30340;&#20540;</span>
+                    <span class="keyword">for</span> k1=1:5
+                        P_RL(min_index,2*k1)=F_RL(min_index+num_drones,2*k1);
+                        P_RL(min_index,2*k1+1)=F_RL(min_index+num_drones,2*k1+1);
+                    <span class="keyword">end</span>
+                    P_RL(min_index,12)=l(min_index,1);
+                    P_RL(min_index,13)=h(min_index,1);
+                    P_RL(min_index,14)=P_RL(min_index,14)+deltaTd_RL;
+                    F_RL(min_index+num_drones,12)=l(min_index,1);
+
+                    Neb_list_fre_RL{k}=F_RL;
+                    Neb_list_pha_RL{k}=P_RL;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%&#25353;&#29031;Tsend2,3&#21015;&#30340;&#20540;&#26356;&#26032;&#31532;&#19968;&#21015;&#19979;&#27425;&#30340;&#24191;&#25773;&#26102;&#38388;&#65292;3&#21015;&#30340;&#20540;&#22312;&#24191;&#25773;&#33410;&#28857;&#21516;&#27493;&#20043;&#21518;&#29992;Qtable&#26469;&#36138;&#23146;&#36873;&#25321;</span>
+        <span class="keyword">if</span> Tsend(min_index,2)+Tsend(min_index,3)&gt;2 <span class="comment">%&#21608;&#26399;&#32553;&#30701;&#27809;&#26377;&#36234;&#30028;</span>
+            Tsend(min_index,2)=Tsend(min_index,2)+Tsend(min_index,3);
+            Tsend(min_index,1)=(Tsend(min_index,1)*alpha(min_index,1)+beta(min_index,1)+<span class="keyword">...</span>
+                Tsend(min_index,2)-beta(min_index,1))/alpha(min_index,1);
+        <span class="keyword">else</span>
+            Tsend(min_index,2)=2;
+            Tsend(min_index,1)=(Tsend(min_index,1)*alpha(min_index,1)+beta(min_index,1)+<span class="keyword">...</span>
+                Tsend(min_index,2)-beta(min_index,1))/alpha(min_index,1);
+        <span class="keyword">end</span>
+
+        <span class="comment">%&#26356;&#26032;Tchange&#30697;&#38453;,&#29992;&#26469;&#36861;&#36394;&#27599;&#20010;&#33410;&#28857;&#27599;&#27425;&#30340;&#21160;&#20316;</span>
+        <span class="keyword">for</span> k3=1:200
+            <span class="keyword">if</span> (Tchange(min_index,k3)~=100)
+                Tchange(min_index,k3)=Tsend(min_index,3);
+                <span class="keyword">break</span>;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%&#31532;&#19968;&#27493;&#65306;&#35745;&#31639;&#26041;&#24046;&#65292;&#33719;&#21462;&#24403;&#21069;&#29366;&#24577;&#65292;&#33719;&#21462;&#19978;&#19968;&#20010;&#21160;&#20316;&#30340;&#22870;&#21169;&#65292;&#26356;&#26032;&#19978;&#19968;&#20010;&#29366;&#24577;&#30340;Qtable</span>
+
+        <span class="comment">%&#31532;&#20108;&#27493;&#65306;&#26681;&#25454;&#36138;&#23146;&#31574;&#30053;&#36873;&#21462;&#19979;&#27425;&#21160;&#20316;</span>
+
+        <span class="comment">%&#31532;&#19977;&#27493;&#65306;&#23436;&#25104;&#24191;&#25773;&#20043;&#21518;&#65292;&#21033;&#29992;&#33258;&#36523;&#30340;&#39057;&#29575;&#21644;&#30456;&#20301;&#35843;&#25972;&#30697;&#38453;&#36827;&#34892;&#21516;&#27493;</span>
+        F_self_RL=Neb_list_fre_RL{min_index};
+        P_self_RL=Neb_list_pha_RL{min_index};
+        <span class="keyword">if</span> max(abs(F_self_RL(:)))~=0 <span class="comment">%&#39057;&#29575;&#30697;&#38453;&#38750;&#31354;&#25165;&#32771;&#34385;&#36827;&#34892;&#21516;&#27493;</span>
+            [l_change,F_change]=distributed_all_l_RL(F_self_RL,num_drones,l(min_index,1));<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#39057;&#20559;&#21442;&#25968;</span>
+            <span class="comment">%&#31532;&#19968;&#20010;&#21442;&#25968;&#34920;&#31034;&#39057;&#20559;&#35843;&#25972;&#20540;&#65292;&#31532;&#20108;&#20010;&#34920;&#31034;&#21516;&#27493;&#20043;&#21518;&#30340;&#37051;&#23621;&#30697;&#38453;&#65288;&#35201;&#25226;&#24050;&#32463;&#29992;&#36807;&#30340;&#20449;&#24687;&#26631;&#35760;&#65289;</span>
+            l(min_index,1)=l_change;<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#39057;&#20559;&#21442;&#25968;</span>
+            Neb_list_fre_RL{min_index}=F_change;
+
+            [h_change,P_change]=distributed_all_h_RL(P_self_RL,l(min_index,1),h(min_index,1),num_drones);<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#30456;&#20559;&#21442;&#25968;</span>
+            h(min_index,1)=h_change;<span class="comment">%&#26356;&#26032;&#36923;&#36753;&#26102;&#38047;&#30456;&#20559;&#21442;&#25968;</span>
+            Neb_list_pha_RL{min_index}=P_change;
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+<span class="comment">%&#26368;&#32456;&#35843;&#25972;&#30340;&#36923;&#36753;&#26102;&#38047;&#39057;&#20559;</span>
+x(:,j)=l.*alpha;
+<span class="comment">%&#26368;&#32456;&#35843;&#25972;&#30340;&#36923;&#36753;&#26102;&#38047;&#30456;&#20559;</span>
+y(:,j)=l.*beta+h;
+z(:,j)=h;
+
+
+<span class="comment">%&#20116;&#27425;&#20223;&#30495;&#27714;&#24179;&#22343;&#20540;</span>
+skewFinal=mean(skew);
+offsetFinal=mean(offset);
+clockFinal=mean(clock);
+clock_varFinal=mean(clock_var);
+
+
+format <span class="string">long</span>;
+plot(1:simulation_k,skewFinal(1:end),<span class="string">'-*'</span>,<span class="string">'LineWidth'</span>,1);
+<span class="comment">% hold on;</span>
+<span class="comment">%plot(1:simulation_k,offsetFinal(1:end),'-*','LineWidth',1);</span>
+<span class="comment">% hold on;</span>
+semilogy(1:simulation_k,clockFinal(1:end),<span class="string">'-*'</span>,<span class="string">'LineWidth'</span>,1);
+<span class="comment">% semilogy(1:simulation_k,clock_varFinal(1:end),'-*','LineWidth',1);</span>
+grid <span class="string">on</span>;
+hold <span class="string">on</span>;
+</pre><pre class="codeoutput error">&#32034;&#24341;&#36229;&#20986;&#25968;&#32452;&#20803;&#32032;&#30340;&#25968;&#30446;(1)&#12290;
+
+&#20986;&#38169; Qlearning_afterAyn (&#31532; 418 &#34892;)
+                        P_RL(min_index,2*k1)=F_RL(d(i),2*k1);
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%使用首轮和最新轮次消息用来同步，并且对相对运动产生的位置偏移进行补偿，利用线性回归最小二乘滤波
+%在粗同步之后尝试利用强化学习来自适应同步周期。
+%粗同步阶段有虚拟链接，强化学习阶段不采用虚拟链接
+
+num_drones = 100; % 无人机数量
+space_size = 3000; % 空间大小（长、宽、高均为1km）
+min_speed =80; % 最小速度（m/s）
+max_speed =100; % 最大速度（m/s）
+comm_range = 1500; % 通信范围（m）
+time_step = 0.1; % 时间步长（s）
+speedChange=2;%无人机每秒速度的该变量（正态分布）
+simulation_time = 500; % 模拟时间（s）
+t_period=2;%发送消息伪周期
+simulation_k=200;%仿真轮数
+broad=5;%多重广播一次的广播次数
+dt=20e-3;%多重广播间隔
+%不同轮次调整后的频偏和相偏
+x=zeros(num_drones,simulation_k);
+y=zeros(num_drones,simulation_k);
+z=zeros(num_drones,simulation_k);
+deltamax=zeros(simulation_k,1);%每轮迭代后全网最大钟差
+var_clock=zeros(simulation_k,1);%每轮迭代后全网时钟值的方差
+t=zeros(simulation_k,1);%每轮迭代后用于测评的真实时间，此处选为最后一个发送消息的节点每次发送完的时间
+speed_change=zeros(num_drones,3);%无人机初始化速度扰动
+round=3;%蒙特卡洛仿真轮数
+skew=zeros(round,simulation_k);%未平均之前的最大频偏差值矩阵
+skewFinal=zeros(1,simulation_k);%平均后的每一轮频偏差值。
+phySkew=80e-6;%物理时钟频偏最大值
+phyOffset=1;%物理时钟相位偏移最大值
+offset=zeros(round,simulation_k);
+clock_var=zeros(round,simulation_k);
+offsetFinal=zeros(1,simulation_k);
+clock=zeros(round,simulation_k);
+clockFinal=zeros(1,simulation_k);
+used_num=0;%每轮同步使用的数据量
+M=zeros(num_drones+1,2);
+Var_change=zeros(num_drones,1);%存储上一轮的方差，用来决定同步趋势
+State_old=zeros(num_drones,1);%存储上一轮的状态，将（方差，趋势）映射到唯一状态索引
+
+for r=1:3
+    % 初始化无人机位置
+    drone_positions = space_size * rand(num_drones, 3);
+    % 初始化无人机速度
+    drone_speeds=zeros(num_drones,3);
+    for i=1:num_drones
+        for j=1:3
+            positive_value=unifrnd(min_speed,max_speed);
+            sign=randi([0,1])*2-1;
+            drone_speeds(i,j)=sign*positive_value;
+        end
+    end
+    
+    %初始化物理时钟频偏
+    alpha=1-phySkew+(2*phySkew)*rand(num_drones,1);
+    %初始化物理时钟相偏
+    beta=-phyOffset+2*phyOffset*rand(num_drones,1);
+    %初始化逻辑时钟频率调整参数
+    l=ones(num_drones,1);
+    %初始化逻辑时钟相位调整参数
+    h=zeros(num_drones,1);
+    % 初始化无人机通信邻接矩阵
+    comm_matrix = zeros(num_drones);
+    
+    %初始化每个离散时间点的距离矩阵
+    D=cell(simulation_time/time_step,1);
+    for i=1:(simulation_time/time_step)
+        D{i}=zeros(num_drones,num_drones);
+    end
+    
+    %初始化每个离散时间点的连接矩阵
+    I=cell(simulation_time/time_step,1);
+    for i=1:(simulation_time/time_step)
+        I{i}=zeros(num_drones,num_drones);
+    end
+    
+    % 模拟无人机运动
+    for k=1:(simulation_time/time_step)
+        
+        %每隔一秒更新无人机速度
+        if mod(k,1/time_step)==0
+            speed_change=speedChange*randn(num_drones,3);%无人机速度扰动
+            drone_speeds=drone_speeds+speed_change;%更新扰动后的速度
+        end
+        
+        % 更新无人机位置
+        drone_positions = drone_positions + drone_speeds * time_step;
+        
+        % 确保无人机不会超出空间边界
+        for i=1:num_drones
+            if drone_positions(i,1)<0
+                drone_positions(i,1)=-drone_positions(i,1);
+                drone_speeds(i,1)=-drone_speeds(i,1);
+            end
+            if drone_positions(i,1)>space_size
+                drone_positions(i,1)=2*space_size-drone_positions(i,1);
+                drone_speeds(i,1)=-drone_speeds(i,1);
+            end
+            if drone_positions(i,2)<0
+                drone_positions(i,2)=-drone_positions(i,2);
+                drone_speeds(i,2)=-drone_speeds(i,2);
+            end
+            if drone_positions(i,2)>space_size
+                drone_positions(i,2)=2*space_size-drone_positions(i,2);
+                drone_speeds(i,2)=-drone_speeds(i,2);
+            end
+            if drone_positions(i,3)<0
+                drone_positions(i,3)=-drone_positions(i,3);
+                drone_speeds(i,3)=-drone_speeds(i,3);
+            end
+            if drone_positions(i,3)>space_size
+                drone_positions(i,3)=2*space_size-drone_positions(i,3);
+                drone_speeds(i,3)=-drone_speeds(i,3);
+            end
+        end
+        
+        % 计算无人机之间的距离
+        distances = pdist2(drone_positions, drone_positions);
+        D{k}=distances;
+        
+        % 更新通信邻接矩阵
+        comm_matrix = (distances <= comm_range);
+        comm_matrix = comm_matrix-eye(num_drones,num_drones);
+        I{k}=comm_matrix;
+    end
+    
+    t_local_total=zeros(num_drones,simulation_k);
+    t_global_total=zeros(num_drones,simulation_k);
+    t_global=(t_period*0.9)*sort(rand(num_drones,1));%初始发送全球时间，升序,预留0.1倍周期作为保护jiange
+    t_local=alpha.*t_global+beta;%初始发送节点时间
+    t_local_total(:,1)=t_local;
+    t_global_total(:,1)=t_global;
+    
+    %所有轮次中各节点发送消息的本地物理时间
+    for m=2:simulation_k
+        t_local_total(:,m)=t_local+t_period*(m-1)*alpha;
+    end
+    
+    %所有轮次中各节点发送消息的全局时间
+    for m=2:simulation_k
+        t_global_total(:,m)=(t_local_total(:,m)-beta)./alpha;
+    end
+    
+    %初始化每个节点本地的邻居频率调整信息列表(消息轮，(当前邻居物理，当前自身物理)*广播轮数，当前邻居逻辑时钟频率调整l,
+    %flag位，只占该列第一行，下面都是0
+    %最后n列：对应邻居节点的二跳邻居信息，每次更新完要清零)
+    %前n行表示首次接收到某节点的消息数据
+    %后n行表示最新接收到某节点的消息数据
+    Neb_list_fre=cell(num_drones,1);
+    for i=1:num_drones
+        Neb_list_fre{i}=zeros(num_drones*2,broad*2+2+1+num_drones);
+    end
+    
+    %初始化每个节点本地的相位邻居信息列表(消息轮，(当前邻居物理，当前自身物理)*广播轮数，邻居逻辑时钟频率调整l，邻居逻辑时钟相位调整h
+    %,与这个邻居的距离产生的时延（随着运动会实时补偿变化）,最后i列表示这个邻居所带来的虚拟链接的时钟相位差值)
+    %前n行表示首次接收到某节点的消息数据
+    Neb_list_pha=cell(num_drones,1);
+    for i=1:num_drones
+        Neb_list_pha{i}=zeros(num_drones,1+broad*2+2+1+num_drones);
+    end
+    
+    for j=1:25 %前25轮完成初步同步
+        for i=1:num_drones
+            [~,d]=sort(t_global_total(:,j));
+            
+            
+            A=I{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的连接矩阵
+            B1=D{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的距离矩阵
+            B2=D{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))+1};
+            
+            Vara=zeros(num_drones,1);
+            Atemp=Neb_list_pha{d(i)};
+            Btemp=zeros(2,1);%第一行表示邻居的逻辑时钟，第二行表示自身的逻辑时钟
+            for n=1:num_drones
+                if Atemp(n,1)>=j-1
+                    
+                    Atemp(n,2)=Atemp(n,2)-Atemp(n,14);%传播时延补偿
+                    
+                    
+                    Btemp(1,1)=Atemp(n,2)*Atemp(n,12)+Atemp(n,13);
+                    Btemp(2,1)=Atemp(n,3)*l(d(i),1)+h(d(i),1);
+                    Vara(n,1)=Btemp(1,1)-Btemp(2,1);
+                    
+                end
+            end
+            Var_change(d(i),1)=var(Vara(Vara ~= 0));%方差初始化
+            
+            %节点状态初始化
+            temp_int=ceil(Var_change(d(i),1)*(1e11));
+            if temp_int<=0
+                temp_int=1;
+            end
+            if temp_int>=100
+                temp_int=100;
+            end
+            State_old(d(i),1)=(temp_int-1)*3+3;
+            
+            %第一轮不更新，从第二轮开始
+            if j>=2
+                M=distributed_all_l(Neb_list_fre{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
+                %这个返回的M矩阵其实包含了在这一轮更新中收到真实邻居的αij*l的值，后面广播可以放到该节点携带的虚拟信息列表中。
+                l(d(i),1)=M(1,1);%更新逻辑时钟频偏参数
+                used_num=M(1,2);%取出更新使用的数据量，决定下一轮是否广播求助信息，让接收到该信息的邻居节点广播二跳信息。
+                %更新完之后，把右侧n列关于二跳节点的信息清零(频率)
+                E=Neb_list_fre{d(i)};
+                E(:, 14:end)=0;
+                Neb_list_fre{d(i)}=E;
+                
+                N=distributed_all_h(Neb_list_pha{d(i)},j,l(d(i),1),h(d(i),1),num_drones);%更新逻辑时钟相偏参数
+                h(d(i),1)=N(1,1);%更新逻辑时钟相偏参数
+                %更新完之后，把右侧n列关于二跳节点的信息清零(相位)
+                E=Neb_list_pha{d(i)};
+                E(:, 15:end)=0;
+                Neb_list_pha{d(i)}=E;
+            end
+            
+            
+            F1=Neb_list_fre{d(i)};%广播节点的自身的消息矩阵
+            
+            %检查d(i)节点发送时与其有连接的其余节点，更新连接节点的邻居信息列表
+            for k=1:num_drones
+                if A(d(i),k)==1
+                    
+                    F=Neb_list_fre{k};%频率矩阵
+                    P=Neb_list_pha{k};%相位矩阵
+                    %对于自己上一轮用于同步邻居小于3时，向所有邻居发送求助，修改邻居的flag为1，
+                    %该邻居检测到flag为1时，则在下次广播中附加自己的二跳信息
+                    if j>=2 && used_num<=5
+                        F(1,13)=1;
+                    end
+                    %首次接收到的消息（不管是第几轮），存放在前n行，n表示无人机总数
+                    if F(d(i),1)==0
+                        F(d(i),1)=j;
+                        P(d(i),1)=j;
+                        %填充邻居列表中首次接收到该节点信息的数据(频率和相位矩阵都有)
+                        for k1=1:5
+                            F(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
+                            P(d(i),2*k1)=F(d(i),2*k1);
+                        end
+                        
+                        for k2=1:5
+                            F(d(i),2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
+                                beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                            P(d(i),2*k2+1)=F(d(i),2*k2+1);
+                        end
+                        F(d(i),12)=l(d(i),1);
+                        P(d(i),12)=l(d(i),1);
+                        P(d(i),13)=h(d(i),1);
+                        %首次收到相位消息，利用双向消息交换计算距离时延
+                        T1=F(d(i),2);
+                        T2=F(d(i),3);
+                        T3=T2+20e-3;
+                        T4=(((T3-beta(k,1))/(alpha(k,1)))+B1(d(i),k)/3e8)*alpha(d(i),1)+beta(d(i),1)+5e-9*randn;
+                        Td=(T2+T4-T3-T1)/2;
+                        P(d(i),14)=Td;
+                        
+                        %判断是否往邻居消息列表中加入当前广播节点的二跳信息(频率和相位)，如果广播节点flag=1，则需要添加
+                        if F1(1,13)==1
+                            for k3=2:num_drones+1
+                                if M(k3,1)>=j-1
+                                    F(d(i),13+k3-1)=M(k3,2);
+                                end
+                                if N(k3,1)>=j-1
+                                    P(d(i),13+k3)=N(k3,2);
+                                end
+                            end
+                        end
+                        Neb_list_fre{k}=F;
+                        Neb_list_pha{k}=P;
+                    end
+                    
+                    %非首次最新接受到的消息（不管是那一轮），
+                    %频率消息存放在第n+1到2n行，用于计算的数据是首次数据和最新数据
+                    %相位消息首先经过Td补偿，然后更新第一轮
+                    if F(d(i),1)~=0
+                        F(d(i)+num_drones,1)=j;
+                        P(d(i),1)=j;
+                        for k1=1:5
+                            F(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
+                        end
+                        
+                        for k2=1:5
+                            F(d(i)+num_drones,2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
+                                beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                        end
+                        deltaTd=compensatePha(F,P,d(i),num_drones);%对新消息的相位消息的d进行动态更新
+                        %更新相位矩阵的值
+                        for k1=1:5
+                            P(d(i),2*k1)=F(d(i)+num_drones,2*k1);
+                            P(d(i),2*k1+1)=F(d(i)+num_drones,2*k1+1);
+                        end
+                        P(d(i),12)=l(d(i),1);
+                        P(d(i),13)=h(d(i),1);
+                        P(d(i),14)=P(d(i),14)+deltaTd;
+                        F(d(i)+num_drones,12)=l(d(i),1);
+                        
+                        %判断是否往邻居消息列表中加入当前广播节点的二跳信息(频率和相位)，如果广播节点flag=1，则需要添加
+                        if F1(1,13)==1
+                            for k3=2:num_drones+1
+                                if M(k3,1)>=j-1
+                                    F(d(i)+num_drones,13+k3-1)=M(k3,2);
+                                end
+                                if N(k3,1)>=j-1
+                                    P(d(i),13+k3)=N(k3,2);
+                                end
+                            end
+                        end
+                        Neb_list_fre{k}=F;
+                        Neb_list_pha{k}=P;
+                    end
+                end
+            end
+            %当所有的消息都广播完毕后，广播节点的flag要重新置零
+            F1(1,13)=0;
+            Neb_list_fre{d(i)}=F1;
+        end
+        %最终调整的逻辑时钟频偏
+        x(:,j)=l.*alpha;
+        %最终调整的逻辑时钟相偏
+        y(:,j)=l.*beta+h;
+        z(:,j)=h;
+    end
+    
+    for i=26:simulation_k
+        x(:,i)=l.*alpha;
+    end
+    for i=26:simulation_k
+        y(:,i)=l.*beta+h;
+    end
+    %选取每次评估同步效果的时间（每轮结束评估一次）
+    for i=1:simulation_k
+        t(i,1)=(t_local_total(num_drones,i)-beta(num_drones))/alpha(num_drones);
+    end
+    %每轮结束后的时钟偏差
+    for k=1:simulation_k
+        deltamax(k,1)=max(x(:,k)*t(k,1)+y(:,k))-min(x(:,k)*t(k,1)+y(:,k));
+    end
+    %每轮结束后同步后时钟的方差
+    for k=1:simulation_k
+        var_clock(k,1)=var(x(:,k)*t(k,1)+y(:,k));
+    end
+    x1=zeros(simulation_k,1);
+    y1=zeros(simulation_k,1);
+    %每轮结束后的频率偏差
+    for c=1:simulation_k
+        x1(c,1)=max(x(:,c))-min(x(:,c));
+    end
+    %每轮结束后的相位偏差
+    for d=1:simulation_k
+        y1(d,1)=max(y(:,d))-min(y(:,d));
+    end
+    %一共进行5次蒙特卡洛仿真，r=5，每一行表示各轮次同步后的全网最大频率差
+    skew(r,:)=x1';
+    offset(r,:)=y1';
+    clock(r,:)=deltamax';
+    clock_var(r,:)=var_clock';
+    
+    
+    %初步同步之后，采用强化学习方法自适应调整周期。权衡同步精度和通信开销
+    %这种情况下，频率同步和相位同步无需使用虚拟链接
+    %不采用同步轮次，每个节点作为独立智能体学习不同情况下的周期调整策略。
+    %动作空间为-10，-5，-2，-1,0,1,2,5,10，动作空间大小为9
+    %方差离散点为1~100*10^-11,一共100个状态，其中最后50个状态方差已经不可接受，每个状态对应up，down，equal三个趋势，状态空间大小为300
+    
+    Qtable=zeros(300,9);%初始化Q表格
+    Tsend=zeros(num_drones,3);%存储每个节点下次广播的全局时间、调整完的同步周期和调整周期的动作
+    Tchange=100*ones(num_drones,200);%存储每个节点周期的变化调整过程。
+    Sold=zeros(num_drones,2);%存储上一个状态对（方差，趋势）
+    
+    
+    %初始化每个节点本地的邻居频率调整信息列表(消息轮，(当前邻居物理，当前自身物理)*广播轮数，当前邻居逻辑时钟频率调整l
+    %前n行表示首次接收到某节点的消息数据
+    %后n行表示最新接收到某节点的消息数据
+    Neb_list_fre_RL=cell(num_drones,1);
+    for i=1:num_drones
+        Neb_list_fre_RL{i}=zeros(num_drones*2,broad*2+2);
+    end
+    
+    %初始化每个节点本地的相位邻居信息列表(消息轮，(当前邻居物理，当前自身物理)*广播轮数，邻居逻辑时钟频率调整l，邻居逻辑时钟相位调整h
+    %,与这个邻居的距离产生的时延（随着运动会实时补偿变化）)
+    %前n行表示首次接收到某节点的消息数据
+    Neb_list_pha_RL=cell(num_drones,1);
+    for i=1:num_drones
+        Neb_list_pha_RL{i}=zeros(num_drones,1+broad*2+2+1);
+    end
+    %每次从中选取最小值节点广播（广播前进行同步），广播过程修改直连邻居参数，广播后修改下次广播时间
+    %每次进行同步时，通过比较本次与上次同步前方差，获得上次行为后系统状态，利用奖励函数更新上一状态上一动作的Q值
+    
+    %初始化发射时间Tsend，将其赋值为粗同步之后的下一轮全局时间，并且当前周期设置为2，下次调整设置为0
+    Tsend(:,1)=(t_local_total(:,26)-beta)./alpha;
+    Tsend(:,2)=2 * ones(num_drones, 1);
+    Tsend(:,3)=zeros(num_drones, 1);
+    
+    %开始Qlearning算法迭代，每次选取当前发射时间最小值节点，先广播，再更新
+    while  min(Tsend(:, 1))<500
+        
+        %先取广播时间最小节点广播，广播完成后按照2,3列数据更新下次广播全局时间
+        [min_value, min_index] = min(Tsend(:, 1));
+        %获取广播时刻的连接矩阵与距离矩阵
+        A_RL=I{ceil(min_value/time_step)};
+        B1_RL=D{ceil(min_value/time_step)};
+        
+        %更新邻居的频率同步矩阵和相位同步矩阵
+        %频率调整第一列为flag位，1表示最新消息，每次同步后要把为1的flag置零。
+        %检查min_index节点发送时与其有连接的其余节点，更新连接节点的邻居信息列表
+        for k=1:num_drones
+            if A_RL(min_index,k)==1
+                
+                F_RL=Neb_list_fre_RL{k};%频率矩阵
+                P_RL=Neb_list_pha_RL{k};%相位矩阵
+                
+                %首次接收到的消息（不管是第几轮），存放在前n行，n表示无人机总数
+                if F_RL(min_index,2)==0
+                    F_RL(min_index,1)=1;
+                    P_RL(min_index,1)=1;
+                    %填充邻居列表中首次接收到该节点信息的数据(频率和相位矩阵都有)
+                    for k1=1:5
+                        F_RL(min_index,2*k1)=min_value*alpha(min_index,1)+beta(min_index,1)+dt*(k1-1)+5e-9*randn;
+                        P_RL(min_index,2*k1)=F_RL(d(i),2*k1);
+                    end
+                    
+                    for k2=1:5
+                        F_RL(min_index,2*k2+1)=(((min_value*alpha(min_index,1)+beta(min_index,1)+(k2-1)*dt-...
+                            beta(min_index,1))/(alpha(min_index,1)))+B1_RL(min_index,k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                        P_RL(min_index,2*k2+1)=F_RL(min_index,2*k2+1);
+                    end
+                    F_RL(min_index,12)=l(min_index,1);
+                    P_RL(min_index,12)=l(min_index,1);
+                    P_RL(min_index,13)=h(min_index,1);
+                    
+                    %首次收到相位消息，利用双向消息交换计算距离时延
+                    T1=F_RL(min_index,2);
+                    T2=F_RL(min_index,3);
+                    T3=T2+20e-3;
+                    T4=(((T3-beta(k,1))/(alpha(k,1)))+B1_RL(min_index,k)/3e8)*alpha(min_index,1)+beta(min_index,1)+5e-9*randn;
+                    Td=(T2+T4-T3-T1)/2;
+                    P_RL(min_index,14)=Td;
+                    
+                    Neb_list_fre_RL{k}=F_RL;
+                    Neb_list_pha_RL{k}=P_RL;
+                end
+                
+                %非首次最新接受到的消息（不管是那一轮），
+                %频率消息存放在第n+1到2n行，用于计算的数据是首次数据和最新数据
+                %相位消息首先经过Td补偿，然后更新第一轮
+                if F_RL(min_index,2)~=0
+                    F_RL(min_index+num_drones,1)=1;
+                    P_RL(min_index,1)=1;
+                    for k1=1:5
+                        F_RL(min_index+num_drones,2*k1)=min_value*alpha(min_index,1)+beta(min_index,1)+dt*(k1-1)+5e-9*randn;
+                    end
+                    
+                    for k2=1:5
+                        F_RL(min_index+num_drones,2*k2+1)=(((min_value*alpha(min_index,1)+beta(min_index,1)+(k2-1)*dt-...
+                            beta(min_index,1))/(alpha(min_index,1)))+B1_RL(min_index,k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                    end
+                    deltaTd_RL=compensatePha_RL(F_RL,P_RL,min_index,num_drones);%对新消息的相位消息的d进行动态更新
+                    %更新相位矩阵的值
+                    for k1=1:5
+                        P_RL(min_index,2*k1)=F_RL(min_index+num_drones,2*k1);
+                        P_RL(min_index,2*k1+1)=F_RL(min_index+num_drones,2*k1+1);
+                    end
+                    P_RL(min_index,12)=l(min_index,1);
+                    P_RL(min_index,13)=h(min_index,1);
+                    P_RL(min_index,14)=P_RL(min_index,14)+deltaTd_RL;
+                    F_RL(min_index+num_drones,12)=l(min_index,1);
+                    
+                    Neb_list_fre_RL{k}=F_RL;
+                    Neb_list_pha_RL{k}=P_RL;
+                end
+            end
+        end
+        
+        %按照Tsend2,3列的值更新第一列下次的广播时间，3列的值在广播节点同步之后用Qtable来贪婪选择
+        if Tsend(min_index,2)+Tsend(min_index,3)>2 %周期缩短没有越界
+            Tsend(min_index,2)=Tsend(min_index,2)+Tsend(min_index,3);
+            Tsend(min_index,1)=(Tsend(min_index,1)*alpha(min_index,1)+beta(min_index,1)+...
+                Tsend(min_index,2)-beta(min_index,1))/alpha(min_index,1);
+        else
+            Tsend(min_index,2)=2;
+            Tsend(min_index,1)=(Tsend(min_index,1)*alpha(min_index,1)+beta(min_index,1)+...
+                Tsend(min_index,2)-beta(min_index,1))/alpha(min_index,1);
+        end
+        
+        %更新Tchange矩阵,用来追踪每个节点每次的动作
+        for k3=1:200
+            if (Tchange(min_index,k3)~=100)
+                Tchange(min_index,k3)=Tsend(min_index,3);
+                break;
+            end
+        end
+        
+        %第一步：计算方差，获取当前状态，获取上一个动作的奖励，更新上一个状态的Qtable
+        
+        %第二步：根据贪婪策略选取下次动作
+        
+        %第三步：完成广播之后，利用自身的频率和相位调整矩阵进行同步
+        F_self_RL=Neb_list_fre_RL{min_index};
+        P_self_RL=Neb_list_pha_RL{min_index};
+        if max(abs(F_self_RL(:)))~=0 %频率矩阵非空才考虑进行同步
+            [l_change,F_change]=distributed_all_l_RL(F_self_RL,num_drones,l(min_index,1));%更新逻辑时钟频偏参数
+            %第一个参数表示频偏调整值，第二个表示同步之后的邻居矩阵（要把已经用过的信息标记）
+            l(min_index,1)=l_change;%更新逻辑时钟频偏参数          
+            Neb_list_fre_RL{min_index}=F_change;
+            
+            [h_change,P_change]=distributed_all_h_RL(P_self_RL,l(min_index,1),h(min_index,1),num_drones);%更新逻辑时钟相偏参数
+            h(min_index,1)=h_change;%更新逻辑时钟相偏参数                
+            Neb_list_pha_RL{min_index}=P_change;
+        end
+               
+    end
+      
+end
+%最终调整的逻辑时钟频偏
+x(:,j)=l.*alpha;
+%最终调整的逻辑时钟相偏
+y(:,j)=l.*beta+h;
+z(:,j)=h;
+
+
+%五次仿真求平均值
+skewFinal=mean(skew);
+offsetFinal=mean(offset);
+clockFinal=mean(clock);
+clock_varFinal=mean(clock_var);
+
+
+format long;
+plot(1:simulation_k,skewFinal(1:end),'-*','LineWidth',1);
+% hold on;
+%plot(1:simulation_k,offsetFinal(1:end),'-*','LineWidth',1);
+% hold on;
+semilogy(1:simulation_k,clockFinal(1:end),'-*','LineWidth',1);
+% semilogy(1:simulation_k,clock_varFinal(1:end),'-*','LineWidth',1);
+grid on;
+hold on;
+
+
+##### SOURCE END #####
+--></body></html>

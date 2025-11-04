@@ -1,0 +1,27 @@
+%从方差值+趋势获取状态索引
+function index=state_to_index(var_curr_RL,tread_RL)
+% var_curr_RL:当前的方差具体值
+% tread_RL：相较于上次是变大变小还是不变
+
+var_curr_RL_temp=var_curr_RL*(1e11);
+n = round(var_curr_RL_temp);  % 先取最近的整数
+    if mod(n, 2) == 1  % 判断是否为奇数（余数为1）
+        nearest_odd = n;
+    else  % 若为偶数，根据x的位置调整
+        if var_curr_RL > n
+            nearest_odd = n + 1;
+        else
+            nearest_odd = n - 1;
+        end
+    end
+
+
+if nearest_odd<=1
+    nearest_odd=1;
+end
+
+if nearest_odd>=99
+    nearest_odd=99;
+end
+index=((nearest_odd+1)/2-1)*3+tread_RL;
+end

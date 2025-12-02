@@ -6,16 +6,16 @@ function r=get_r(action,var_curr_RL,state_curr_RL)
 v_max=5e-10;%允许的最大方差
 %精度维度参数
 r_k1=10;
-r_alpha=1e10;
-r_beta=1e11;
-r_c=10;
+r_alpha=1e6;
+r_beta=1e7;
+r_c=50;
 %周期维度参数
-r_gamma=1;
+r_gamma=0.9;
 r_v0=1e-10;
-r_epsilon=2;
+r_epsilon=1;
 %趋势维度参数
-r_D=3;
-r_E=1e10;
+r_D=5;
+r_E=1e5;
 if var_curr_RL<=v_max
     %精度维度的奖励
     r_accuracy=r_k1-r_alpha*var_curr_RL;

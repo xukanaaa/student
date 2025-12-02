@@ -175,8 +175,9 @@ for r=1:3
             if j>=2
                 M=distributed_all_l(Neb_list_fre{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
                 %这个返回的M矩阵其实包含了在这一轮更新中收到真实邻居的αij*l的值，后面广播可以放到该节点携带的虚拟信息列表中。
-                l(d(i),1)=(1-0.05-0.985^j)*l(d(i),1)+(0.05+0.985^j)*M(1,1);%更新逻辑时钟频偏参数
-                 % l(d(i),1)=M(1,1);
+                %l(d(i),1)=(1-0.05-0.985^j)*l(d(i),1)+(0.05+0.985^j)*M(1,1);%更新逻辑时钟频偏参数
+                l(d(i),1)=M(1,1);               
+                %l(d(i),1)=(0.5)*l(d(i),1)+(0.5)*M(1,1);
                 used_num=M(1,2);%取出更新使用的数据量，决定下一轮是否广播求助信息，让接收到该信息的邻居节点广播二跳信息。
                 %更新完之后，把右侧n列关于二跳节点的信息清零(频率)
                 E=Neb_list_fre{d(i)};
@@ -184,8 +185,9 @@ for r=1:3
                 Neb_list_fre{d(i)}=E;
                 
                 N=distributed_all_h(Neb_list_pha{d(i)},j,l(d(i),1),h(d(i),1),num_drones);%更新逻辑时钟相偏参数
-                h(d(i),1)=(1-0.05-0.985^j)*h(d(i),1)+(0.05+0.985^j)*N(1,1);%更新逻辑时钟相偏参数
-                 % h(d(i),1)=N(1,1);
+                %h(d(i),1)=(1-0.05-0.985^j)*h(d(i),1)+(0.05+0.985^j)*N(1,1);%更新逻辑时钟相偏参数
+                h(d(i),1)=N(1,1);
+                %h(d(i),1)=(0.5)*h(d(i),1)+(0.5)*N(1,1);
                 %更新完之后，把右侧n列关于二跳节点的信息清零(相位)
                 E=Neb_list_pha{d(i)};
                 E(:, 15:end)=0;
@@ -206,7 +208,7 @@ for r=1:3
                     P=Neb_list_pha{k};%相位矩阵
                     %对于自己上一轮用于同步邻居小于3时，向所有邻居发送求助，修改邻居的flag为1，
                     %该邻居检测到flag为1时，则在下次广播中附加自己的二跳信息
-                    if j>=2 && used_num<=5
+                    if j>=2 && used_num<=6
                         F(1,13)=1;
                     end
                     %首次接收到的消息（不管是第几轮），存放在前n行，n表示无人机总数
@@ -215,13 +217,13 @@ for r=1:3
                         P(d(i),1)=j;
                         %填充邻居列表中首次接收到该节点信息的数据(频率和相位矩阵都有)
                         for k1=1:5
-                            F(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
+                            F(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+1e-10*randn;
                             P(d(i),2*k1)=F(d(i),2*k1);
                         end
                         
                         for k2=1:5
                             F(d(i),2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                                beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                                beta(d(i),1))/(alpha(d(i),1))))*alpha(k,1)+beta(k,1)+B1(d(i),k)/3e8+1e-10*randn;
                             P(d(i),2*k2+1)=F(d(i),2*k2+1);
                         end
                         F(d(i),12)=l(d(i),1);
@@ -231,8 +233,13 @@ for r=1:3
                         T1=F(d(i),2);
                         T2=F(d(i),3);
                         T3=T2+20e-3;
-                        T4=(((T3-beta(k,1))/(alpha(k,1)))+B1(d(i),k)/3e8)*alpha(d(i),1)+beta(d(i),1)+5e-9*randn;
-                        Td=(T2+T4-T3-T1)/2;
+                        T4=(((T3-beta(k,1))/(alpha(k,1))))*alpha(d(i),1)+beta(d(i),1)+B1(d(i),k)/3e8+1e-10*randn;
+                        T1_L=T1*l(d(i),1)+h(d(i),1);
+                        T2_L=T2*l(k,1)+h(k,1);
+                        T3_L=T3*l(k,1)+h(k,1);
+                        T4_L=T4*l(d(i),1)+h(d(i),1);
+                        Td=(T2_L+T4_L-T3_L-T1_L)/2;
+                        % P(d(i),14)=750/(3e8);
                         P(d(i),14)=Td;
                         
                         %判断是否往邻居消息列表中加入当前广播节点的二跳信息(频率和相位)，如果广播节点flag=1，则需要添加
@@ -257,22 +264,36 @@ for r=1:3
                         F(d(i)+num_drones,1)=j;
                         P(d(i),1)=j;
                         for k1=1:5
-                            F(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
+                            F(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+1e-10*randn;
                         end
                         
                         for k2=1:5
                             F(d(i)+num_drones,2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                                beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                                beta(d(i),1))/(alpha(d(i),1))))*alpha(k,1)+beta(k,1)+B1(d(i),k)/3e8+1e-10*randn;
                         end
-                        deltaTd=compensatePha(F,P,d(i),num_drones);%对新消息的相位消息的d进行动态更新
+
+                        
+                        %deltaTd=compensatePha(F,P,d(i),num_drones);%对新消息的相位消息的d进行动态更新
                         %更新相位矩阵的值
                         for k1=1:5
                             P(d(i),2*k1)=F(d(i)+num_drones,2*k1);
                             P(d(i),2*k1+1)=F(d(i)+num_drones,2*k1+1);
                         end
+                        T1=F(d(i)+num_drones,2);
+                        T2=F(d(i)+num_drones,3);
+                        T3=T2+20e-3;
+                        T4=(((T3-beta(k,1))/(alpha(k,1))))*alpha(d(i),1)+beta(d(i),1)+B1(d(i),k)/3e8+1e-10*randn;
+                        T1_L=T1*l(d(i),1)+h(d(i),1);
+                        T2_L=T2*l(k,1)+h(k,1);
+                        T3_L=T3*l(k,1)+h(k,1);
+                        T4_L=T4*l(d(i),1)+h(d(i),1);
+                        Td=(T2_L+T4_L-T3_L-T1_L)/2;
+                        % P(d(i),14)=750/(3e8);
+                        P(d(i),14)=Td;
+
                         P(d(i),12)=l(d(i),1);
                         P(d(i),13)=h(d(i),1);
-                        P(d(i),14)=P(d(i),14)+deltaTd;
+                        %P(d(i),14)=P(d(i),14)+deltaTd;
                         F(d(i)+num_drones,12)=l(d(i),1);
                         
                         %判断是否往邻居消息列表中加入当前广播节点的二跳信息(频率和相位)，如果广播节点flag=1，则需要添加
@@ -343,7 +364,11 @@ format long;
 % hold on;
  %plot(1:simulation_k,offsetFinal(1:end),'-*','LineWidth',1);
 % hold on;
- semilogy(1:simulation_k,clockFinal(1:end),'-*','LineWidth',1);
+ % semilogy(1:simulation_k,clockFinal(1:end),'-*','LineWidth',1);
+   semilogy(1:5:simulation_k,clockFinal(1:5:end),'-*','LineWidth',1.5);
+   xlabel("同步轮数");
+   ylabel("全网最大时钟差");
+
 % semilogy(1:simulation_k,clock_varFinal(1:end),'-*','LineWidth',1);
 grid on;
 hold on;

@@ -2,7 +2,7 @@ num_drones = 100; % 无人机数量
 space_size = 3000; % 空间大小（长、宽、高均为1km）
 min_speed =80; % 最小速度（m/s）
 max_speed =100; % 最大速度（m/s）
-comm_range = 1500; % 通信范围（m）
+comm_range = 900; % 通信范围（m）
 time_step = 0.1; % 时间步长（s）
 simulation_time = 500; % 模拟时间（s）
 t_period=2;%发送消息伪周期
@@ -146,7 +146,7 @@ for r=1:5
                     C(d(i),7)=C(d(i),3);
                     C(d(i),1)=j;
                     C(d(i),2)=t_local_total(d(i),j)+5e-9*randn;%频率同步
-                    C(d(i),3)=(((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)))+B(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                    C(d(i),3)=(((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1))))*alpha(k,1)+B(d(i),k)/3e8+beta(k,1)+5e-9*randn;
                     C(d(i),4)=l(d(i),1)*C(d(i),2)+h(d(i),1);%相位同步
                     C(d(i),5)=l(k,1)*C(d(i),3)+h(k,1);
                     C(d(i),8)=l(d(i),1);
@@ -192,7 +192,9 @@ format long;
 % hold on;
  %plot(8:simulation_k,offsetFinal(1:193),'-o','LineWidth',1);
 % hold on;
- plot(8:simulation_k,clockFinal(1:193),'-o','LineWidth',1);
+ %semilogy(1:simulation_k,clockFinal(1:end),'-o','LineWidth',1);
+  semilogy(1:5:simulation_k,clockFinal(1:5:end),'-o','LineWidth',1.2);
+
 xlabel('同步轮次');
 ylabel('全网最大时钟差/s');
 title('密集网络同步性能')

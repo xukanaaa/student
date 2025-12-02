@@ -37,12 +37,18 @@ used_num=0;%每轮同步使用的数据量
 M=zeros(num_drones+1,2);
 Var_change=zeros(num_drones,1);%存储上一轮的方差，用来决定同步趋势
 State_old=zeros(num_drones,1);%存储上一轮的状态，将（方差，趋势）映射到唯一状态索引
-alpha_RL=0.5;%强化学习的学习率
+alpha_RL=0.95;%强化学习的学习率
 gamma_RL=0.9;%强化学习未来衰减率
 Qtable_trance=cell(400,1);%追踪Qtable迭代过程
 Q_count=1;
+clock_max_eachround=zeros(simulation_k,1);%用来统计强化学习中和原本类似时间网络的最大时钟差
+%complexity_RL=zeros(30,1);%强化学习复杂度，每50s对应时间为一块，采用累加
+%complexity_RL(1,1)=2500;
+complexity_DPTS=[2500;5000;7500;10000;12500;15000;17500;20000;22500;25000;27500;30000;32500;35000;37500;40000;42500;45000;47500;50000];
 
 for r=1:3
+    complexity_RL=zeros(30,1);%强化学习复杂度，每50s对应时间为一块，采用累加
+    complexity_RL(1,1)=2500;
     % 初始化无人机位置
     drone_positions = space_size * rand(num_drones, 3);
     % 初始化无人机速度
@@ -363,7 +369,7 @@ for r=1:3
 
     Qtable=zeros(150,7);%初始化Q表格
     Tsend=zeros(num_drones,3);%存储每个节点下次广播的全局时间、调整完的同步周期和调整周期的动作
-    Tchange=100*ones(num_drones,200);%存储每个节点周期的变化调整过程。
+    Tchange=100*ones(num_drones,2000);%存储每个节点周期的变化调整过程。
     Sold=zeros(num_drones,2);%存储上一个状态对（方差，趋势）
 
 
@@ -542,6 +548,7 @@ for r=1:3
             Neb_list_pha_RL{min_index}=P_change;
         end
 
+        %这个变量其实看的是400s左右网络的最大时钟差
         if min(Tsend(:, 1))>390&&min(Tsend(:, 1))<410
             global_temp=min(Tsend(:, 1));
             local_temp=global_temp*alpha+beta;
@@ -549,27 +556,303 @@ for r=1:3
             result_temp=max(compa_temp) - min(compa_temp);
             result_zuihou(r,1)=result_temp;
         end
+        
+        %计算强化学习对应时间点的最大时钟差
+        round_send=ceil(min_value/2);%当前同步时刻对应的强化学习之前的同步轮
+        if round_send<=200
+            local_time_RL=min_value*alpha+beta;
+            compensate_time_RL=local_time_RL.*l+h;
+            delta_clock_RL=max(compensate_time_RL)-min(compensate_time_RL);
+            if(clock_max_eachround(round_send,1)==0 )
+                clock_max_eachround(round_send,1)=delta_clock_RL;
+            end
+        end
 
+        %计算强化学习通信开销
+        if min_value<=1000
+            complexity_index=ceil(min_value/50);
+            for ii=20:-1:complexity_index
+                complexity_RL(ii,1)=complexity_RL(ii,1)+1;
+            end
+        end
     end
 
 end
 
-result_test=mean(result_zuihou);
+
+
+%探究Q表格的收敛性，这种情况下，每0.5s更新一个距离和连接矩阵，通信拓扑是基于上面的基础上的之后的运动状态。
+%仿真跨度为500-3000秒
+simulation_time_converge=2500;
+time_step_converge=0.5;
+% 初始化无人机通信邻接矩阵
+comm_matrix_converge = comm_matrix;
+
+%初始化每个离散时间点的距离矩阵
+D_converge=cell(simulation_time_converge/time_step_converge,1);
+for i=1:(simulation_time_converge/time_step_converge)
+    D_converge{i}=zeros(num_drones,num_drones);
+end
+
+%初始化每个离散时间点的连接矩阵
+I_converge=cell(simulation_time_converge/time_step_converge,1);
+for i=1:(simulation_time_converge/time_step_converge)
+    I_converge{i}=zeros(num_drones,num_drones);
+end
+
+% 模拟无人机运动
+for k=1:(simulation_time_converge/time_step_converge)
+
+    %每隔一秒更新无人机速度
+    if mod(k,1/time_step_converge)==0
+        speed_change=speedChange*randn(num_drones,3);%无人机速度扰动
+        drone_speeds=drone_speeds+speed_change;%更新扰动后的速度
+    end
+
+    % 更新无人机位置
+    drone_positions = drone_positions + drone_speeds * time_step_converge;
+
+    % 确保无人机不会超出空间边界
+    for i=1:num_drones
+        if drone_positions(i,1)<0
+            drone_positions(i,1)=-drone_positions(i,1);
+            drone_speeds(i,1)=-drone_speeds(i,1);
+        end
+        if drone_positions(i,1)>space_size
+            drone_positions(i,1)=2*space_size-drone_positions(i,1);
+            drone_speeds(i,1)=-drone_speeds(i,1);
+        end
+        if drone_positions(i,2)<0
+            drone_positions(i,2)=-drone_positions(i,2);
+            drone_speeds(i,2)=-drone_speeds(i,2);
+        end
+        if drone_positions(i,2)>space_size
+            drone_positions(i,2)=2*space_size-drone_positions(i,2);
+            drone_speeds(i,2)=-drone_speeds(i,2);
+        end
+        if drone_positions(i,3)<0
+            drone_positions(i,3)=-drone_positions(i,3);
+            drone_speeds(i,3)=-drone_speeds(i,3);
+        end
+        if drone_positions(i,3)>space_size
+            drone_positions(i,3)=2*space_size-drone_positions(i,3);
+            drone_speeds(i,3)=-drone_speeds(i,3);
+        end
+    end
+
+    % 计算无人机之间的距离
+    distances = pdist2(drone_positions, drone_positions);
+    D_converge{k}=distances;
+
+    % 更新通信邻接矩阵
+    comm_matrix_converge = (distances <= comm_range);
+    comm_matrix_converge = comm_matrix_converge-eye(num_drones,num_drones);
+    I_converge{k}=comm_matrix_converge;
+end
+
+while  min(Tsend(:, 1))<3000
+    %先取广播时间最小节点广播，广播完成后按照2,3列数据更新下次广播全局时间
+    [min_value, min_index] = min(Tsend(:, 1));
+    %获取广播时刻的连接矩阵与距离矩阵
+    A_RL=I_converge{ceil((min_value-500)/time_step_converge)};
+    B1_RL=D_converge{ceil((min_value-500)/time_step_converge)};
+
+    %更新邻居的频率同步矩阵和相位同步矩阵
+    %频率调整第一列为flag位，1表示最新消息，每次同步后要把为1的flag置零。
+    %检查min_index节点发送时与其有连接的其余节点，更新连接节点的邻居信息列表
+    for k=1:num_drones
+        if A_RL(min_index,k)==1
+
+            F_RL=Neb_list_fre_RL{k};%频率矩阵
+            P_RL=Neb_list_pha_RL{k};%相位矩阵
+
+            %首次接收到的消息（不管是第几轮），存放在前n行，n表示无人机总数
+            if F_RL(min_index,2)==0
+                F_RL(min_index,1)=1;
+                P_RL(min_index,1)=1;
+                %填充邻居列表中首次接收到该节点信息的数据(频率和相位矩阵都有)
+                for k1=1:5
+                    F_RL(min_index,2*k1)=min_value*alpha(min_index,1)+beta(min_index,1)+dt*(k1-1)+5e-9*randn;
+                    P_RL(min_index,2*k1)=F_RL(min_index,2*k1);
+                end
+
+                for k2=1:5
+                    F_RL(min_index,2*k2+1)=(((min_value*alpha(min_index,1)+beta(min_index,1)+(k2-1)*dt-...
+                        beta(min_index,1))/(alpha(min_index,1)))+B1_RL(min_index,k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                    P_RL(min_index,2*k2+1)=F_RL(min_index,2*k2+1);
+                end
+                F_RL(min_index,12)=l(min_index,1);
+                P_RL(min_index,12)=l(min_index,1);
+                P_RL(min_index,13)=h(min_index,1);
+
+                %首次收到相位消息，利用双向消息交换计算距离时延
+                T1=F_RL(min_index,2);
+                T2=F_RL(min_index,3);
+                T3=T2+20e-3;
+                T4=(((T3-beta(k,1))/(alpha(k,1)))+B1_RL(min_index,k)/3e8)*alpha(min_index,1)+beta(min_index,1)+5e-9*randn;
+                Td=(T2+T4-T3-T1)/2;
+                P_RL(min_index,14)=Td;
+
+                Neb_list_fre_RL{k}=F_RL;
+                Neb_list_pha_RL{k}=P_RL;
+            end
+
+            %非首次最新接受到的消息（不管是那一轮），
+            %频率消息存放在第n+1到2n行，用于计算的数据是首次数据和最新数据
+            %相位消息首先经过Td补偿，然后更新第一轮
+            if F_RL(min_index,2)~=0
+                F_RL(min_index+num_drones,1)=1;
+                P_RL(min_index,1)=1;
+                for k1=1:5
+                    F_RL(min_index+num_drones,2*k1)=min_value*alpha(min_index,1)+beta(min_index,1)+dt*(k1-1)+5e-9*randn;
+                end
+
+                for k2=1:5
+                    F_RL(min_index+num_drones,2*k2+1)=(((min_value*alpha(min_index,1)+beta(min_index,1)+(k2-1)*dt-...
+                        beta(min_index,1))/(alpha(min_index,1)))+B1_RL(min_index,k)/3e8)*alpha(k,1)+beta(k,1)+5e-9*randn;
+                end
+                deltaTd_RL=compensatePha_RL(F_RL,P_RL,min_index,num_drones);%对新消息的相位消息的d进行动态更新
+                %更新相位矩阵的值
+                for k1=1:5
+                    P_RL(min_index,2*k1)=F_RL(min_index+num_drones,2*k1);
+                    P_RL(min_index,2*k1+1)=F_RL(min_index+num_drones,2*k1+1);
+                end
+                P_RL(min_index,12)=l(min_index,1);
+                P_RL(min_index,13)=h(min_index,1);
+                P_RL(min_index,14)=P_RL(min_index,14)+deltaTd_RL;
+                F_RL(min_index+num_drones,12)=l(min_index,1);
+
+                Neb_list_fre_RL{k}=F_RL;
+                Neb_list_pha_RL{k}=P_RL;
+            end
+        end
+    end
+
+    %更新Tchange矩阵,用来追踪每个节点每次的动作
+    for k3=1:200
+        if (Tchange(min_index,k3)==100)
+            Tchange(min_index,k3)=Tsend(min_index,3);
+            break;
+        end
+    end
+
+    %第一步：计算方差，获取当前状态，获取上一个动作的奖励，更新上一个状态的Qtable
+    P_var_RL=Neb_list_pha_RL{min_index};
+    if any(P_var_RL(:) ~= 0) && get_var(P_var_RL,num_drones,l(min_index,1),h(min_index,1))~=0
+        var_curr_RL=get_var(P_var_RL,num_drones,l(min_index,1),h(min_index,1));%从相位同步矩阵获取前段时间的时钟值方差，作为当前状态
+    else
+        var_curr_RL=Var_change(min_index,1);
+    end
+    var_old_RL=Var_change(min_index,1);%上一轮的方差
+    state_old_RL=State_old(min_index,1);%上一轮的转态索引
+    %state_curr_RL=0;%这一轮的状态索引初始值
+
+    %获取当前状态索引
+    if var_curr_RL-var_old_RL>5e-11 %方差变大
+        state_curr_RL=state_to_index(var_curr_RL,1);%状态转索引函数
+    elseif var_old_RL-var_curr_RL>5e-11 %方差变小
+        state_curr_RL=state_to_index(var_curr_RL,2);
+    else %方差几乎保持不变
+        state_curr_RL=state_to_index(var_curr_RL,3);
+    end
+
+    %将上一轮的方差和状态索引更新为此次的，方便下次使用
+    Var_change(min_index,1)=var_curr_RL;
+    State_old(min_index,1)=state_curr_RL;
+
+    %从精度，周期，趋势三个方面计算上一个状态采取的动作的奖励R
+    R_RL=get_r(Tsend(min_index,3),var_curr_RL,state_curr_RL);
+
+    %Qlearning中的TD方式更新前一个状态的QTable值
+    action_old_RL=action_to_index(Tsend(min_index,3));%上一个动作转索引
+    max_Q=max(Qtable(state_curr_RL, :));
+    Qtable(state_old_RL,action_old_RL)=Qtable(state_old_RL,action_old_RL)+...
+        alpha_RL*(R_RL+gamma_RL*max_Q-Qtable(state_old_RL,action_old_RL));
+
+    %第二步：根据贪婪策略选取下次动作，并且更新Tsend的动作，周期和下次发射时间
+    action_curr_RL=greedy(state_curr_RL,Qtable);
+    Tsend(min_index,3)=action_curr_RL;
+    %按照Tsend3列的值更新第一列下次的广播时间和周期
+    if Tsend(min_index,2)+Tsend(min_index,3)>2 %周期缩短没有越界
+        Tsend(min_index,2)=Tsend(min_index,2)+Tsend(min_index,3);
+        Tsend(min_index,1)=(Tsend(min_index,1)*alpha(min_index,1)+beta(min_index,1)+...
+            Tsend(min_index,2)-beta(min_index,1))/alpha(min_index,1);
+    else
+        Tsend(min_index,2)=2;
+        Tsend(min_index,1)=(Tsend(min_index,1)*alpha(min_index,1)+beta(min_index,1)+...
+            Tsend(min_index,2)-beta(min_index,1))/alpha(min_index,1);
+    end
+
+    Qtable_trance{Q_count}=Qtable;
+    Q_count=Q_count+1;
+
+    %第三步：完成广播之后，利用自身的频率和相位调整矩阵进行同步
+    F_self_RL=Neb_list_fre_RL{min_index};
+    P_self_RL=Neb_list_pha_RL{min_index};
+    if any(F_self_RL(:) ~= 0) %频率矩阵非空才考虑进行同步
+        [l_change,F_change]=distributed_all_l_RL(F_self_RL,num_drones,l(min_index,1));%更新逻辑时钟频偏参数
+        %第一个参数表示频偏调整值，第二个表示同步之后的邻居矩阵（要把已经用过的信息标记）
+        l(min_index,1)=(1-0.05-0.985^(fix(min_value/2)))*l(min_index,1)+(0.05+0.985^(fix(min_value/2)))*l_change;
+        Neb_list_fre_RL{min_index}=F_change;
+
+        [h_change,P_change]=distributed_all_h_RL(P_self_RL,l(min_index,1),h(min_index,1),num_drones);%更新逻辑时钟相偏参数
+        h(min_index,1)=(1-0.05-0.985^(fix(min_value/2)))*h(min_index,1)+(0.05+0.985^(fix(min_value/2)))*h_change;%更新逻辑时钟相偏参数
+        Neb_list_pha_RL{min_index}=P_change;
+    end
+
+    % %这个变量其实看的是400s左右网络的最大时钟差
+    % if min(Tsend(:, 1))>390&&min(Tsend(:, 1))<410
+    %     global_temp=min(Tsend(:, 1));
+    %     local_temp=global_temp*alpha+beta;
+    %     compa_temp=local_temp.*l+h;
+    %     result_temp=max(compa_temp) - min(compa_temp);
+    %     result_zuihou(r,1)=result_temp;
+    % end
+
+    %计算强化学习通信开销
+        if min_value<=1000
+            complexity_index=ceil(min_value/50);
+            for ii=20:-1:complexity_index
+                complexity_RL(ii,1)=complexity_RL(ii,1)+1;
+            end
+        end
+
+end
+
+[~, result_converge] = max(Qtable, [], 2);
+
+
 %五次仿真求平均值
+result_test=mean(result_zuihou);
 skewFinal=mean(skew);
 offsetFinal=mean(offset);
 clockFinal=mean(clock);
 clock_varFinal=mean(clock_var);
+clock_max_eachround(1:25)=clockFinal(1:25);
 
-
+result_converge_all(3,:)=result_converge;
 
 format long;
-plot(1:simulation_k,skewFinal(1:end),'-*','LineWidth',1);
+%plot(1:simulation_k,skewFinal(1:end),'-*','LineWidth',1);
 % hold on;
 %plot(1:simulation_k,offsetFinal(1:end),'-*','LineWidth',1);
 % hold on;
-semilogy(1:simulation_k,clockFinal(1:end),'-*','LineWidth',1);
+%semilogy(1:5:simulation_k,clockFinal(1:5:end),'-<','LineWidth',1.5);
+%hold on;
+non_zero_idx = find(clock_max_eachround ~= 0);  % 获取非零元素的行索引（X轴数据）
+non_zero_vals = clock_max_eachround(non_zero_idx);  % 获取对应的非零值（Y轴数据）
+is_multiple5 = mod(non_zero_idx, 5) == 0;  % 判断索引是否为5的倍数（逻辑数组）
+final_idx = non_zero_idx(is_multiple5);    % 最终X轴：5的倍数的非零索引
+final_vals = non_zero_vals(is_multiple5);  % 最终Y轴：对应的值
+%semilogy(final_idx,final_vals,'-s','LineWidth',1.5)
 % semilogy(1:simulation_k,clock_varFinal(1:end),'-*','LineWidth',1);
+%通信开销对比
+plot(50:50:1000,complexity_RL(1:20),'-*','LineWidth',1);
+hold on;
+plot(50:50:1000,complexity_DPTS(1:20),'-s','LineWidth',1);
+xlabel('同步轮次');
+ylabel('全网最大时钟差/s');
+title('密集网络同步性能')
 grid on;
 hold on;
 

@@ -1,5 +1,5 @@
 num_drones = 100; % 无人机数量
-space_size = 3000; % 空间大小（长、宽、高均为1km）
+space_size = 7500; % 空间大小（长、宽、高均为1km）
 min_speed =80; % 最小速度（m/s）
 max_speed =100; % 最大速度（m/s）
 comm_range = 1500; % 通信范围（m）
@@ -192,9 +192,11 @@ clockFinal=mean(clock);
 
 
 format long;
-plot(1:simulation_k,skewFinal(1:end),'-s','LineWidth',1);
+%semilogy(1:simulation_k,skewFinal(1:end),'-s','LineWidth',1);
 %plot(1:simulation_k,offsetFinal(1:end),'-s','LineWidth',1);
-%plot(1:simulation_k,clockFinal(1:end),'-s','LineWidth',1);
+%semilogy(1:simulation_k,clockFinal(1:end),'-s','LineWidth',1);
+  semilogy(1:5:simulation_k,clockFinal(1:5:end),'-s','LineWidth',1.2);
+
 % xlabel('同步轮次');
 % ylabel('最大相位偏差');
 grid on;

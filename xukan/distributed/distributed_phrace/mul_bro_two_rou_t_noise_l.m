@@ -1,11 +1,11 @@
-function l=MulBro_TwoRouTnoise_l(A,j,i,L)
+function l=mul_bro_two_rou_t_noise_l(A,j,i,L)
 % A:节点自身维护的消息矩阵
 % j:当前同步轮数
 % i:无人机总数
 % L:自身节点的频偏补偿值
 
 %GTSP的逻辑时钟频率调整
-deltal=zeros(i,1);%每个节点对应的频率调整值
+delta_l=zeros(i,1);%每个节点对应的频率调整值
 % alpha=zeros(5,1);
 m=0;
 
@@ -53,7 +53,7 @@ for n=(i+1):(2*i)
              denominator=denominator+(A(n,2*k4+1)-Ti_mean)^2+(A(n-i,2*k4+1)-Ti_mean)^2;
          end
     
-       deltal(n-i,1)=molecule*A(n,12)/denominator;
+       delta_l(n-i,1)=molecule*A(n,12)/denominator;
 %deltal(n-i,1)=(new_y-old_y+d_molecule/d_denominator)*A(n,12)/(new_x-old_x);
         m=m+1;
 
@@ -69,10 +69,10 @@ for n=(i+1):(2*i)
             (A(n-i,10)-Tj_mean_old)*(A(n-i,11)-Ti_mean_old);
         denominator=(A(n-i,3)-Ti_mean_old)^2+(A(n-i,5)-Ti_mean_old)^2+(A(n-i,7)-Ti_mean_old)^2+...
             (A(n-i,9)-Ti_mean_old)^2+(A(n-i,11)-Ti_mean_old)^2;
-        deltal(n-i,1)=molecule*A(n-i,12)/denominator;
+        delta_l(n-i,1)=molecule*A(n-i,12)/denominator;
       
         m=m+1;
     end
 end
-l=(sum(deltal)+L)/(m+1);
+l=(sum(delta_l)+L)/(m+1);
 end

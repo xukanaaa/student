@@ -6,7 +6,7 @@ min_speed =80; % 最小速度（m/s）
 max_speed =100; % 最大速度（m/s）
 comm_range = 1500; % 通信范围（m）
 time_step = 0.1; % 时间步长（s）
-speedChange=2;%无人机每秒速度的该变量（正态分布）
+speed_change=2;%无人机每秒速度的该变量（正态分布）
 simulation_time = 500; % 模拟时间（s）
 t_period=2;%发送消息伪周期
 simulation_k=200;%仿真轮数
@@ -18,14 +18,14 @@ y=zeros(num_drones,simulation_k);
 z=zeros(num_drones,simulation_k);
 deltamax=zeros(simulation_k,1);%每轮迭代后全网最大钟差
 t=zeros(simulation_k,1);%每轮迭代后用于测评的真实时间，此处选为最后一个发送消息的节点每次发送完的时间
-speed_change=zeros(num_drones,3);%无人机初始化速度扰动
+speed_changes=zeros(num_drones,3);%无人机初始化速度扰动
 round=5;%蒙特卡洛仿真轮数
 skew=zeros(round,simulation_k);%未平均之前的最大频偏差值矩阵
-skewFinal=zeros(1,simulation_k);%平均后的每一轮频偏差值。
-phySkew=80e-6;%物理时钟频偏最大值
-phyOffset=1;%物理时钟相位偏移最大值
+skew_final=zeros(1,simulation_k);%平均后的每一轮频偏差值。
+phy_skew=80e-6;%物理时钟频偏最大值
+phy_offset=1;%物理时钟相位偏移最大值
 offset=zeros(round,simulation_k);
-offsetFinal=zeros(1,simulation_k);
+offset_final=zeros(1,simulation_k);
 
 for r=1:5
     % 初始化无人机位置
@@ -41,9 +41,9 @@ for r=1:5
     end
     
     %初始化物理时钟频偏
-    alpha=1-phySkew+(2*phySkew)*rand(num_drones,1);
+    alpha=1-phy_skew+(2*phy_skew)*rand(num_drones,1);
     %初始化物理时钟相偏
-    beta=-phyOffset+2*phyOffset*rand(num_drones,1);
+    beta=-phy_offset+2*phy_offset*rand(num_drones,1);
     %初始化逻辑时钟频率调整参数
     l=ones(num_drones,1);
     %初始化逻辑时钟相位调整参数
@@ -68,8 +68,8 @@ for r=1:5
         
         %每隔一秒更新无人机速度
         if mod(k,1/time_step)==0
-            speed_change=speedChange*randn(num_drones,3);%无人机速度扰动
-            drone_speeds=drone_speeds+speed_change;%更新扰动后的速度
+            speed_changes=speed_change*randn(num_drones,3);%无人机速度扰动
+            drone_speeds=drone_speeds+speed_changes;%更新扰动后的速度
         end
         
         % 更新无人机位置
@@ -133,17 +133,17 @@ for r=1:5
     %初始化每个节点本地的频率邻居信息列表(消息轮，(当前邻居物理，当前自身物理)*广播轮数，当前邻居逻辑时钟频率调整l)
     %前n行表示首次接收到某节点的消息数据
     %后n行表示最新接收到某节点的消息数据
-    Neb_list=cell(num_drones,1);
+    neb_list=cell(num_drones,1);
     for i=1:num_drones
-        Neb_list{i}=zeros(num_drones*2,broad*2+2);
+        neb_list{i}=zeros(num_drones*2,broad*2+2);
     end
     
     %初始化每个节点本地的相位邻居信息列表(消息轮，(当前邻居物理，当前自身物理)*广播轮数，邻居逻辑时钟频率调整l，邻居逻辑时钟相位调整h
     %,与这个邻居的距离产生的时延)
     %前n行表示首次接收到某节点的消息数据
-    Neb_list_pha=cell(num_drones,1);
+    neb_list_pha=cell(num_drones,1);
     for i=1:num_drones
-        Neb_list_pha{i}=zeros(num_drones,1+broad*2+2+1);
+        neb_list_pha{i}=zeros(num_drones,1+broad*2+2+1);
     end
     
     for j=1:simulation_k
@@ -152,8 +152,8 @@ for r=1:5
             
             %第一轮不更新，从第二轮开始
             if j>=2
-                l(d(i),1)=MulBro_TwoRouTnoise_l(Neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
-                h(d(i),1)=MulBro_TwoRouTnoise_h(Neb_list_pha{d(i)},j,l(d(i),1),h(d(i),1),num_drones);%更新逻辑时钟相偏参数
+                l(d(i),1)=mul_bro_two_rou_t_noise_l(neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
+                h(d(i),1)=mul_bro_two_rou_t_noise_h(neb_list_pha{d(i)},j,l(d(i),1),h(d(i),1),num_drones);%更新逻辑时钟相偏参数
             end
             
             A=I{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的连接矩阵
@@ -165,8 +165,8 @@ for r=1:5
             for k=1:num_drones
                 if A(d(i),k)==1
                     %首次接收到的消息（不管是第几轮），存放在前n行，n表示无人机总数
-                    C=Neb_list{k};
-                    P=Neb_list_pha{k};%相位矩阵
+                    C=neb_list{k};
+                    P=neb_list_pha{k};%相位矩阵
                     if C(d(i),1)==0
                         C(d(i),1)=j;
                         P(d(i),1)=j;
@@ -191,8 +191,8 @@ for r=1:5
                         Td=(T2+T4-T3-T1)/2;
                         P(d(i),14)=Td;
                         C(d(i),12)=l(d(i),1);
-                        Neb_list{k}=C;
-                        Neb_list_pha{k}=P;
+                        neb_list{k}=C;
+                        neb_list_pha{k}=P;
                     end
                     
                     %非首次最新接受到的消息（不管是那一轮），
@@ -209,7 +209,7 @@ for r=1:5
                             C(d(i)+num_drones,2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
                                 beta(d(i),1))/(alpha(d(i),1)))+B1(d(i),k)/3e8)*alpha(k,1)+beta(k,1)+2e-9*randn;
                         end
-                        deltaTd=compensatePha(C,P,d(i),num_drones);%对新消息的相位消息的d进行动态更新
+                        delta_td=compensate_pha(C,P,d(i),num_drones);%对新消息的相位消息的d进行动态更新
                         %更新相位矩阵的值
                         for k1=1:5
                             P(d(i),2*k1)=C(d(i)+num_drones,2*k1);
@@ -217,10 +217,10 @@ for r=1:5
                         end
                         P(d(i),12)=l(d(i),1);
                         P(d(i),13)=h(d(i),1);
-                        P(d(i),14)=P(d(i),14)+deltaTd;
+                        P(d(i),14)=P(d(i),14)+delta_td;
                         C(d(i)+num_drones,12)=l(d(i),1);
-                        Neb_list{k}=C;
-                        Neb_list_pha{k}=P;
+                        neb_list{k}=C;
+                        neb_list_pha{k}=P;
                     end
                     
                 end
@@ -256,12 +256,12 @@ for r=1:5
     offset(r,:)=y1';
 end
 %五次仿真求平均值
-skewFinal=mean(skew);
-offsetFinal=mean(offset);
+skew_final=mean(skew);
+offset_final=mean(offset);
 
 format long;
-%plot(5:simulation_k,skewFinal(5:end),'-*','LineWidth',1);
-plot(12:simulation_k,offsetFinal(12:end),'-*','LineWidth',1);
+%plot(5:simulation_k,skew_final(5:end),'-*','LineWidth',1);
+plot(12:simulation_k,offset_final(12:end),'-*','LineWidth',1);
 grid on;
 hold on;
 

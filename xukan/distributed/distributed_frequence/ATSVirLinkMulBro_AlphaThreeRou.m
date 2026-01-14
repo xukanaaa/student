@@ -8,7 +8,7 @@ min_speed =80; % 最小速度（m/s）
 max_speed =100; % 最大速度（m/s）
 comm_range = 1500; % 通信范围（m）
 time_step = 0.1; % 时间步长（s）
-speedChange=2;%无人机每秒速度的该变量（正态分布）
+speed_change=2;%无人机每秒速度的该变量（正态分布）
 simulation_time = 500; % 模拟时间（s）
 t_period=2;%发送消息伪周期
 simulation_k=200;%仿真轮数
@@ -20,12 +20,12 @@ y=zeros(num_drones,simulation_k);
 z=zeros(num_drones,simulation_k);
 deltamax=zeros(simulation_k,1);%每轮迭代后全网最大钟差
 t=zeros(simulation_k,1);%每轮迭代后用于测评的真实时间，此处选为最后一个发送消息的节点每次发送完的时间
-speed_change=zeros(num_drones,3);%无人机初始化速度扰动
+speed_changes=zeros(num_drones,3);%无人机初始化速度扰动
 round=5;%蒙特卡洛仿真轮数
 skew=zeros(round,simulation_k);%未平均之前的最大频偏差值矩阵
-skewFinal=zeros(1,simulation_k);%平均后的每一轮频偏差值。
-phySkew=80e-6;%物理时钟频偏最大值
-phyOffset=1;%物理时钟相位偏移最大值
+skew_final=zeros(1,simulation_k);%平均后的每一轮频偏差值。
+phy_skew=80e-6;%物理时钟频偏最大值
+phy_offset=1;%物理时钟相位偏移最大值
 used_num=0;%每轮同步使用的数据量
 M=zeros(num_drones+1,2);
 
@@ -45,7 +45,7 @@ for i=1:num_drones
 end
 
 %初始化物理时钟频偏
-alpha=1-phySkew+(2*phySkew)*rand(num_drones,1);
+alpha=1-phy_skew+(2*phy_skew)*rand(num_drones,1);
 %初始化物理时钟相偏
 beta=-phyOffset+2*phyOffset*rand(num_drones,1);
 %初始化逻辑时钟频率调整参数
@@ -72,8 +72,8 @@ for k=1:(simulation_time/time_step)
     
     %每隔一秒更新无人机速度
     if mod(k,1/time_step)==0
-       speed_change=speedChange*randn(num_drones,3);%无人机速度扰动
-       drone_speeds=drone_speeds+speed_change;%更新扰动后的速度
+       speed_changes=speed_change*randn(num_drones,3);%无人机速度扰动
+       drone_speeds=drone_speeds+speed_changes;%更新扰动后的速度
     end
    
     % 更新无人机位置
@@ -263,9 +263,9 @@ end
 skew(r,:)=x1';
 end
 %五次仿真求平均值
-skewFinal=mean(skew);
+skew_final=mean(skew);
 
 format long;
-plot(7:simulation_k,skewFinal(7:end),'-*','LineWidth',1);
+plot(7:simulation_k,skew_final(7:end),'-*','LineWidth',1);
 hold on;
 

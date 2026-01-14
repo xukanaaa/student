@@ -1,4 +1,4 @@
-function M=MTS_l_h(Fre,Pha,j,num,L,H,i)
+function M=mts_l_h(Fre,Pha,j,num,L,H,i)
 % Fre:频率消息矩阵
 % Pha:相位消息矩阵
 % j:当前同步轮次
@@ -18,7 +18,7 @@ H_old=H;
 for n=num+1:2*num
     %有多于两轮同一节点消息，才用于同步
     if Fre(n,1)>=j-1
-        thre=(9e-5)/(Fre(n,1)-Fre(n-num,1));
+        thre=(9e-6)/(Fre(n,1)-Fre(n-num,1));
 
         alpha_ij=(Fre(n,2)-Fre(n-num,2))/(Fre(n,3)-Fre(n-num,3));
         q_ij=alpha_ij*Pha(n-num,4)/L;

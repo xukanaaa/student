@@ -10,7 +10,7 @@ SamplesPerSymbol = SpreadFactor * SamplesPerChip;
 
 % === 环境参数 ===
 SNR_dB = 15;              % 信噪比
-SIR_dB = -10;             % 强干扰
+SIR_dB = -8;              % 强干扰
 Fixed_Threshold = 0.5;    % 同步门限
 
 % === 多径参数 (单位: 码片) ===
@@ -39,6 +39,7 @@ fprintf('真实延迟: %.2f Samples\n', True_Delay_Samples);
 % 1. 整数转二进制 (24位)
 NumDataBits = 24; 
 Tx_Bits = bitget(Tx_Time_Int, NumDataBits:-1:1)'; 
+
 % 2. 加 Pilot
 Tx_Frame = [1; Tx_Bits]; 
 NumSymbols = length(Tx_Frame);
@@ -95,6 +96,7 @@ end
 
 Amp_Interf = sqrt(1 / 10^(SIR_dB/10)); 
 sig_I = [zeros(500, 1); txSignal_Interf];
+
 len = max(length(sig_Target_Total), length(sig_I)) + 500;
 sig_Target_Total(end+1:len) = 0; sig_Target_Total = sig_Target_Total(1:len);
 sig_I(end+1:len) = 0; sig_I = sig_I(1:len);
@@ -117,6 +119,7 @@ lag_fine = linspace(lag(idx_range(1)), lag(idx_range(end)), 1000);
 val_fine = interp1(lag(idx_range), acor_norm(idx_range), lag_fine, 'spline');
 [~, fineMaxIdx] = max(val_fine);
 Estimated_Delay = lag_fine(fineMaxIdx);
+
 TOA_Error_ns = (Estimated_Delay - True_Delay_Samples)/Fs * 1e9;
 
 % 解调
@@ -125,6 +128,7 @@ for i = 1:NumDataBits
     sampIdx = SyncIdx + i * SamplesPerSymbol;
     if acor_raw(sampIdx) > 0, Rx_Bits(i) = 1; else, Rx_Bits(i) = 0; end
 end
+
 Rx_Time_Int = sum(Rx_Bits .* (2.^((NumDataBits-1):-1:0)'));
 
 % 解析时间
@@ -154,7 +158,7 @@ ZoomLen = MicroChips * SamplesPerChip;
 subplot(2,1,1);
 TxStart = 501; 
 plot(1:ZoomLen, paddedTx(TxStart : TxStart + ZoomLen - 1), 'b', 'LineWidth', 1.2);
-title(['(a) 发送数据包前段 (' sprintf('%02d:%02d:%02d', HH, MM, SS) ')']);
+title('(a) 发送数据包前段 ');
 grid on; ylim([-1.5 1.5]); ylabel('幅度'); xlabel('局部采样点');
 ax = gca; ax.XTick = 0 : 100 : ZoomLen; grid minor;
 
@@ -170,34 +174,38 @@ ax = gca; ax.XTick = 0 : 100 : ZoomLen; grid minor;
 % Figure 2: 互相关结果 (主峰原始形态 + 多径标记)
 % =======================================================
 figure('Name', '2. Correlation Peak (Focused)', 'Position', [950, 450, 800, 450]);
-
 RangeSpan = 200; 
 IdxZoom = (SyncIdx - RangeSpan) : (SyncIdx + RangeSpan);
 CurrentLag = lag(IdxZoom);
 CurrentVal = acor_raw(IdxZoom);
 
-plot(CurrentLag, CurrentVal, 'b-', 'LineWidth', 1.5); hold on;
-plot(lag(SyncIdx), acor_raw(SyncIdx), 'go', 'MarkerSize', 10, 'LineWidth', 2);
+% 绘图并保存句柄用于图例
+h_line = plot(CurrentLag, CurrentVal, 'b-', 'LineWidth', 1.5); hold on;
+h_peak = plot(lag(SyncIdx), acor_raw(SyncIdx), 'go', 'MarkerSize', 10, 'LineWidth', 2);
 text(lag(SyncIdx), acor_raw(SyncIdx)+0.2, 'Sync Peak', 'Color', 'g', 'HorizontalAlignment', 'center', 'FontWeight', 'bold');
 
 % 标记多径位置 (仅虚线)
 BaseLag = lag(SyncIdx);
 MaxVal = max(CurrentVal);
-xline(BaseLag + 0.75*SamplesPerChip, 'r--', 'LineWidth', 1.5); % Path 2
-xline(BaseLag + 3.0*SamplesPerChip, 'm--', 'LineWidth', 1.5);  % Path 3
-xline(BaseLag + 10.0*SamplesPerChip, 'm--', 'LineWidth', 1.5); % Path 4
+h_mp1 = xline(BaseLag + 0.75*SamplesPerChip, 'r--', 'LineWidth', 1.5); % Path 2
+h_mp2 = xline(BaseLag + 3.0*SamplesPerChip, 'm--', 'LineWidth', 1.5);  % Path 3
+xline(BaseLag + 10.0*SamplesPerChip, 'm--', 'LineWidth', 1.5);         % Path 4 (不需要单独句柄)
+yline(0, 'k-', 'HandleVisibility', 'off'); % 辅助线不进图例
 
-yline(0, 'k-', 'Zero Line');
-title(['互相关主峰 (时间 ' sprintf('%02d:%02d:%02d', Rx_HH, Rx_MM, Rx_SS) ' 解调基准)']);
+title('互相关主峰');
 ylabel('原始相关幅值'); xlabel('Lag (Samples)');
 grid on; grid minor;
 xlim([min(CurrentLag), max(CurrentLag)]);
+
+% === 添加图例 (Figure 2) ===
+legend([h_line, h_peak, h_mp1, h_mp2], ...
+    {'互相关曲线', '同步峰值', '近端多径 (0.75 chip)', '远端多径 (3.0/10.0 chip)'}, ...
+    'Location', 'best');
 
 % =======================================================
 % Figure 3: 真实 vs 估计时间差距 (TOA Gap)
 % =======================================================
 figure('Name', '3. TOA Precision Gap', 'Position', [950, 50, 800, 350]);
-
 idx_p = (SyncIdx-span):(SyncIdx+span);
 lag_p = lag(idx_p);
 val_p = acor_norm(idx_p);
@@ -206,20 +214,34 @@ t_axis = (lag_p - lag(SyncIdx))/Fs * 1e9;
 t_fine = linspace(min(t_axis), max(t_axis), 500);
 val_interp = interp1(t_axis, val_p, t_fine, 'spline');
 
-plot(t_fine, val_interp, 'k-', 'LineWidth', 1.5); hold on;
-stem(t_axis, val_p, 'b-o', 'LineWidth', 1.2, 'MarkerFaceColor', 'b');
+% 绘图并保存句柄
+h_fit  = plot(t_fine, val_interp, 'k-', 'LineWidth', 1.5); hold on;
+h_stem = stem(t_axis, val_p, 'b-o', 'LineWidth', 1.2, 'MarkerFaceColor', 'b');
 
 t_true_rel = (True_Delay_Samples - lag(SyncIdx))/Fs * 1e9;
 t_est_rel  = (Estimated_Delay - lag(SyncIdx))/Fs * 1e9;
 
-xline(t_true_rel, 'g-', 'LineWidth', 2);
-xline(t_est_rel, 'r--', 'LineWidth', 2);
+h_true = xline(t_true_rel, 'g-', 'LineWidth', 2);
+h_est  = xline(t_est_rel, 'r--', 'LineWidth', 2);
 
 y_mid = max(val_p) * 0.96;
 quiver(t_true_rel, y_mid, t_est_rel-t_true_rel, 0, 0, 'Color', 'm', 'LineWidth', 2, 'MaxHeadSize', 0.5);
 text((t_true_rel+t_est_rel)/2, y_mid+0.005, sprintf('Gap: %.3f ns', abs(TOA_Error_ns)), ...
     'Color', 'm', 'HorizontalAlignment', 'center', 'FontWeight', 'bold');
 
-title('TOA 估计精度 (20MHz, 纳秒级)');
+title('TOA 估计精度');
 xlabel('相对时间 (ns)'); ylabel('归一化幅度');
 grid on; xlim([-3, 3]); ylim([0.9, 1.01]);
+
+% === 添加图例 (Figure 3) ===
+legend([h_fit, h_stem, h_true, h_est], ...
+    {'Spline插值曲线', '采样数据点', '真实延迟真值', '算法估计延迟'}, ...
+    'Location', 'southwest');
+
+%1M:54.2162ns  
+%5M:11.5640ns
+%10M:5.4216ns
+%20M:2.5907ns
+%50M:1.0603ns
+%100M:0.5302ns
+%200M:0.2531ns

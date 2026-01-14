@@ -142,25 +142,25 @@ simulation_k=180;%仿真轮数
 x=zeros(num_drones,simulation_k);
 y=zeros(num_drones,simulation_k);
 z=zeros(num_drones,simulation_k);
-deltamax=zeros(simulation_k,1);%每轮迭代后全网最大钟差
+delta_max=zeros(simulation_k,1);%每轮迭代后全网最大钟差
 var_clock=zeros(simulation_k,1);%每轮迭代后全网时钟值的方差
 t=zeros(simulation_k,1);%每轮迭代后用于测评的真实时间，此处选为最后一个发送消息的节点每次发送完的时间
 round=3;%蒙特卡洛仿真轮数
 skew=zeros(round,simulation_k);%未平均之前的最大频偏差值矩阵
-skewFinal=zeros(1,simulation_k);%平均后的每一轮频偏差值。
-phySkew=80e-6;%物理时钟频偏最大值
-phyOffset=1;%物理时钟相位偏移最大值
+skew_final=zeros(1,simulation_k);%平均后的每一轮频偏差值。
+phy_skew=80e-6;%物理时钟频偏最大值
+phy_offset=1;%物理时钟相位偏移最大值
 offset=zeros(round,simulation_k);
 clock_var=zeros(round,simulation_k);
-offsetFinal=zeros(1,simulation_k);
+offset_final=zeros(1,simulation_k);
 clock=zeros(round,simulation_k);
-clockFinal=zeros(1,simulation_k);
+clock_final=zeros(1,simulation_k);
 
 
 %初始化物理时钟频偏
-alpha=1-phySkew+(2*phySkew)*rand(num_drones,1);
+alpha=1-phy_skew+(2*phy_skew)*rand(num_drones,1);
 %初始化物理时钟相偏
-beta=-phyOffset+2*phyOffset*rand(num_drones,1);
+beta=-phy_offset+2*phy_offset*rand(num_drones,1);
 %初始化逻辑时钟频率调整参数
 l=ones(num_drones,1);
 %初始化逻辑时钟相位调整参数
@@ -188,23 +188,23 @@ end
 %flag位，表示当前同步状态，连续两轮自己的不变，且邻居的也不变才为1，变化为0，一轮为0.5，二轮为1
 %前n行表示首次接收到某节点的消息数据
 %后n行表示最新接收到某节点的消息数据
-Neb_list_fre=cell(num_drones,1);
+neb_list_fre=cell(num_drones,1);
 for i=1:num_drones
-    Neb_list_fre{i}=zeros(num_drones*2,5);
+    neb_list_fre{i}=zeros(num_drones*2,5);
 end
 
 %初始化每个节点本地的相位邻居信息列表(消息轮，(当前邻居物理，当前自身物理)，邻居逻辑时钟频率调整l，邻居逻辑时钟相位调整h
 %,)
 %前n行表示首次接收到某节点的消息数据
-Neb_list_pha=cell(num_drones,1);
+neb_list_pha=cell(num_drones,1);
 for i=1:num_drones
-    Neb_list_pha{i}=zeros(num_drones,5);
+    neb_list_pha{i}=zeros(num_drones,5);
 end
 
 %初始化每个节点收到的头结点得分汇总
-Neb_list_score=cell(num_drones,1);
+neb_list_score=cell(num_drones,1);
 for i=1:num_drones
-    Neb_list_score{i}=zeros(num_drones,1);
+    neb_list_score{i}=zeros(num_drones,1);
 end
 
 round_cluster=0;
@@ -215,20 +215,20 @@ for j=1:simulation_k
 
         %第一轮不更新，从第二轮开始
         if j>=2
-            M=MTS_l_h(Neb_list_fre{d(i)},Neb_list_pha{d(i)},j,num_drones,l(d(i),1),h(d(i),1),d(i));%更新逻辑时钟频偏和相偏参数
+            M=mts_l_h(neb_list_fre{d(i)},neb_list_pha{d(i)},j,num_drones,l(d(i),1),h(d(i),1),d(i));%更新逻辑时钟频偏和相偏参数
             %返回值包括频偏补偿，相偏补偿，当前同步状态（0,0.5,1）
             l(d(i),1)=M(1,1);
             h(d(i),1)=M(1,2);
-            state_self=Neb_list_fre{d(i)};
+            state_self=neb_list_fre{d(i)};
             state_self(d(i),5)=M(1,3);
-            Neb_list_fre{d(i)}=state_self;
+            neb_list_fre{d(i)}=state_self;
 
         end
         A=history.adj_mat{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的连接矩阵
         B1=history.dist_mat{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的距离矩阵
 
         %更新完后对当前节点局部区域同步状态进行判断，如果自己连续两轮未改变且当前轮次收到的邻居也是如此，状态为1，否则为0
-        F1=Neb_list_fre{d(i)};%广播节点的自身的消息矩阵
+        F1=neb_list_fre{d(i)};%广播节点的自身的消息矩阵
         syn_state=1;
         for ii=num_drones+1:2*num_drones
             if F1(ii,1)>=j-1
@@ -242,7 +242,7 @@ for j=1:simulation_k
         end
 
         %计算当前节点score，当且仅当syn_state为1，且自己的S矩阵对应的自己的值为0时才计算
-        S_self=Neb_list_score{d(i)};
+        S_self=neb_list_score{d(i)};
         if S_self(d(i),1)==0&&syn_state==1
             score_self=get_score(d(i),A,num_drones,j);
             S_self(d(i),1)=score_self;
@@ -252,6 +252,7 @@ for j=1:simulation_k
         if all(S_self(:))
             if S_self(d(i),1)==min(S_self)&&round_cluster==0
                 round_cluster=j;%轮次
+                max_node=d(i);
                 A_cluster=A;%连接矩阵
                 B_cluster=B1;%距离矩阵
                 S_self_temp=S_self;
@@ -262,9 +263,9 @@ for j=1:simulation_k
         for k=1:num_drones
             if A(d(i),k)==1
 
-                F=Neb_list_fre{k};%频率矩阵
-                P=Neb_list_pha{k};%相位矩阵
-                S=Neb_list_score{k};%邻居的分数矩阵
+                F=neb_list_fre{k};%频率矩阵
+                P=neb_list_pha{k};%相位矩阵
+                S=neb_list_score{k};%邻居的分数矩阵
 
                 %首次接收到的消息（不管是第几轮），存放在前n行，n表示无人机总数
                 if F(d(i),1)==0
@@ -286,9 +287,9 @@ for j=1:simulation_k
                     S_merge=merge(S,S_self,num_drones);
                     S=S_merge;
 
-                    Neb_list_fre{k}=F;
-                    Neb_list_pha{k}=P;
-                    Neb_list_score{k}=S;
+                    neb_list_fre{k}=F;
+                    neb_list_pha{k}=P;
+                    neb_list_score{k}=S;
                 end
 
                 %非首次最新接受到的消息（不管是那一轮），
@@ -316,16 +317,16 @@ for j=1:simulation_k
                     P(d(i),5)=h(d(i),1);
                     F(d(i)+num_drones,4)=l(d(i),1);
 
-                    F_self=Neb_list_fre{d(i)};
+                    F_self=neb_list_fre{d(i)};
                     F(d(i)+num_drones,5)=F_self(d(i),5);
 
                     %更新合并自己的分数矩阵和邻居的分数矩阵
                     S_merge=merge(S,S_self,num_drones);
                     S=S_merge;
 
-                    Neb_list_fre{k}=F;
-                    Neb_list_pha{k}=P;
-                    Neb_list_score{k}=S;
+                    neb_list_fre{k}=F;
+                    neb_list_pha{k}=P;
+                    neb_list_score{k}=S;
                 end
             end
         end
@@ -343,7 +344,7 @@ for i=1:simulation_k
 end
 %每轮结束后的时钟偏差
 for k=1:simulation_k
-    deltamax(k,1)=max(x(:,k)*t(k,1)+y(:,k))-min(x(:,k)*t(k,1)+y(:,k));
+    delta_max(k,1)=max(x(:,k)*t(k,1)+y(:,k))-min(x(:,k)*t(k,1)+y(:,k));
 end
 
 %每轮结束后同步后时钟的方差
@@ -364,78 +365,92 @@ end
 %一共进行5次蒙特卡洛仿真，r=5，每一行表示各轮次同步后的全网最大频率差
 skew(1,:)=x1';
 offset(1,:)=y1';
-clock(1,:)=deltamax';
+clock(1,:)=delta_max';
 clock_var(1,:)=var_clock';
 
 %五次仿真求平均值
-skewFinal=skew(1,:);
-offsetFinal=offset(1,:);
-clockFinal=clock(1,:);
-clock_varFinal=clock_var(1,:);
+skew_final=skew(1,:);
+offset_final=offset(1,:);
+clock_final=clock(1,:);
+clock_var_final=clock_var(1,:);
 
 
 format long;
-semilogy(1:5:simulation_k,skewFinal(1:5:end),'-s','LineWidth',1.5);
- hold on;
-%plot(1:simulation_k,offsetFinal(1:end),'-*','LineWidth',1);
-% hold on;
-%semilogy(1:simulation_k,clockFinal(1:end),'-*','LineWidth',1);
- semilogy(1:5:simulation_k,clockFinal(1:5:end),'-*','LineWidth',1.5);
+semilogy(1:5:simulation_k,skew_final(1:5:end),'-s','LineWidth',1.5);
+  hold on;
+semilogy(1:5:simulation_k,offset_final(1:5:end),'-*','LineWidth',1);
+hold on;
+%semilogy(1:simulation_k,clock_final(1:end),'-*','LineWidth',1);
+ semilogy(1:5:simulation_k,clock_final(1:5:end),'-o','LineWidth',1.5);
 xlabel("同步轮数");
-ylabel("全网最大时钟差");
+ylabel("全网最大频率偏移");
+title("MTS粗同步频率偏差")
 
-% semilogy(1:simulation_k,clock_varFinal(1:end),'-*','LineWidth',1);
+% semilogy(1:simulation_k,clock_var_final(1:end),'-*','LineWidth',1);
 grid on;
 hold on;
 
 
 %% 2. 构建图
-% 融合 A 和 B：只保留 A 中有连接的边，并赋予 B 的权重
 W = double(A_cluster) .* B_cluster;
 G = graph(W, 'upper');
 
 %% 3. 绘图 (基础设置)
 figure('Color', 'w', 'Position', [100, 100, 900, 700]);
-
-% 使用力导向布局，让距离近的节点聚在一起
 h = plot(G, 'Layout', 'force'); 
-
-title('网络拓扑图 (仅显示 1-5 号节点编号)');
+title('主节点选举结果（round=22）');
 axis off;
 
-% --- 样式微调：让背景节点淡化 ---
-h.NodeColor = [0.8 0.8 0.8]; % 灰色节点
-h.MarkerSize = 5;            % 小节点
-h.EdgeColor = [0.9 0.9 0.9]; % 非常淡的边线
-h.EdgeAlpha = 0.6;
+% --- 样式修改：背景节点设为黑色 ---
+h.NodeColor = 'k';           % 【修改点】 'k' 代表黑色 (Black)
+h.MarkerSize = 5;            % 节点大小
+h.EdgeColor = [0.8 0.8 0.8]; % 边线稍微深一点点，以便看清连接
+h.EdgeAlpha = 0.4;           % 边线透明度
 
-%% 4. 关键步骤：只显示 1-5 号的编号
-% 默认情况下 MATLAB 会显示所有编号。我们需要自定义标签列表。
-% --- 修正开始 ---
-% 1. 创建一个全是空字符串 "" 的字符串向量
+%% 4. 设置标签 (1-5号 和 max_node 的处理)
 myLabels = strings(num_drones, 1); 
 
-% 2. 填入前 5 个
+% 1-5 号显示编号
 for i = 1:5
     myLabels(i) = string(i);
 end
 
-% 3. 赋值
-h.NodeLabel = myLabels;
-% --- 修正结束 ---
-% 其余位置保持为空 cell，即不显示标签
+% 屏蔽 max_node 自带标签 (防止重影)
+myLabels(max_node) = ""; 
 
-% 将自定义标签赋值给图对象
 h.NodeLabel = myLabels;
 
-%% 5. 高亮 1-5 号节点 (红色 + 大字体)
+%% 5. 高亮 1-5 号节点 (红色)
+% 这会覆盖上面的黑色设置，使 1-5 变成红色
 target_nodes = 1:5;
-
 highlight(h, target_nodes, ...
-    'NodeColor', 'r', ...         % 节点变红
-    'MarkerSize', 10, ...         % 节点变大
-    'NodeLabelColor', 'k', ...    % 编号文字设为黑色 (对比度高)
-    'NodeFontSize', 14, ...       % 编号字体加大
-    'NodeFontWeight', 'bold');    % 编号字体加粗
+    'NodeColor', 'r', ...         % 重点节点红色
+    'MarkerSize', 10, ...         
+    'NodeLabelColor', 'k', ...    % 编号文字黑色
+    'NodeFontSize', 14, ...       
+    'NodeFontWeight', 'bold');    
 
-disp('绘图完成。仅 1-5 号节点显示编号。');
+%% 6. 绘制五角星 并 将编号标在旁边
+hold on; 
+
+% 1. 获取 max_node 坐标
+x_pos = h.XData(max_node);
+y_pos = h.YData(max_node);
+
+% 2. 画五角星 (金色填充)
+plot(x_pos, y_pos, 'p', ...
+    'MarkerSize', 20, ...             
+    'MarkerFaceColor', '#FFD700', ... % 金色
+    'MarkerEdgeColor', 'k', ...       % 黑色边框
+    'LineWidth', 1.5);
+
+% 3. 手动写上编号 (显示在右侧，不遮挡)
+text(x_pos, y_pos, ['  ' num2str(max_node)], ... % 空格实现偏移
+    'HorizontalAlignment', 'left', ...    
+    'VerticalAlignment', 'middle', ...    
+    'FontSize', 14, ...
+    'FontWeight', 'bold', ...
+    'Color', 'k');
+
+hold off;
+disp('绘图完成。背景节点已改为黑色。');

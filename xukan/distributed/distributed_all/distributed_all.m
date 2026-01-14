@@ -217,13 +217,13 @@ for r=1:3
                         P(d(i),1)=j;
                         %填充邻居列表中首次接收到该节点信息的数据(频率和相位矩阵都有)
                         for k1=1:5
-                            F(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+1e-10*randn;
+                            F(d(i),2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
                             P(d(i),2*k1)=F(d(i),2*k1);
                         end
                         
                         for k2=1:5
                             F(d(i),2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                                beta(d(i),1))/(alpha(d(i),1))))*alpha(k,1)+beta(k,1)+B1(d(i),k)/3e8+1e-10*randn;
+                                beta(d(i),1))/(alpha(d(i),1))))*alpha(k,1)+beta(k,1)+B1(d(i),k)/3e8+5e-9*randn+(k2-1)*1.6/3e8;
                             P(d(i),2*k2+1)=F(d(i),2*k2+1);
                         end
                         F(d(i),12)=l(d(i),1);
@@ -233,7 +233,7 @@ for r=1:3
                         T1=F(d(i),2);
                         T2=F(d(i),3);
                         T3=T2+20e-3;
-                        T4=(((T3-beta(k,1))/(alpha(k,1))))*alpha(d(i),1)+beta(d(i),1)+B1(d(i),k)/3e8+1e-10*randn;
+                        T4=(((T3-beta(k,1))/(alpha(k,1))))*alpha(d(i),1)+beta(d(i),1)+B1(d(i),k)/3e8+5e-9*randn;
                         T1_L=T1*l(d(i),1)+h(d(i),1);
                         T2_L=T2*l(k,1)+h(k,1);
                         T3_L=T3*l(k,1)+h(k,1);
@@ -264,12 +264,12 @@ for r=1:3
                         F(d(i)+num_drones,1)=j;
                         P(d(i),1)=j;
                         for k1=1:5
-                            F(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+1e-10*randn;
+                            F(d(i)+num_drones,2*k1)=t_local_total(d(i),j)+dt*(k1-1)+5e-9*randn;
                         end
                         
                         for k2=1:5
                             F(d(i)+num_drones,2*k2+1)=(((t_local_total(d(i),j)+(k2-1)*dt-...
-                                beta(d(i),1))/(alpha(d(i),1))))*alpha(k,1)+beta(k,1)+B1(d(i),k)/3e8+1e-10*randn;
+                                beta(d(i),1))/(alpha(d(i),1))))*alpha(k,1)+beta(k,1)+B1(d(i),k)/3e8+5e-9*randn+(k2-1)*1.6/3e8;
                         end
 
                         
@@ -282,7 +282,7 @@ for r=1:3
                         T1=F(d(i)+num_drones,2);
                         T2=F(d(i)+num_drones,3);
                         T3=T2+20e-3;
-                        T4=(((T3-beta(k,1))/(alpha(k,1))))*alpha(d(i),1)+beta(d(i),1)+B1(d(i),k)/3e8+1e-10*randn;
+                        T4=(((T3-beta(k,1))/(alpha(k,1))))*alpha(d(i),1)+beta(d(i),1)+B1(d(i),k)/3e8+5e-9*randn;
                         T1_L=T1*l(d(i),1)+h(d(i),1);
                         T2_L=T2*l(k,1)+h(k,1);
                         T3_L=T3*l(k,1)+h(k,1);
@@ -360,12 +360,12 @@ clock_varFinal=mean(clock_var);
 
 
 format long;
-% semilogy(1:simulation_k,skewFinal(1:end),'-s','LineWidth',1);
+semilogy(1:simulation_k,skewFinal(1:end),'-s','LineWidth',1);
 % hold on;
  %plot(1:simulation_k,offsetFinal(1:end),'-*','LineWidth',1);
 % hold on;
  % semilogy(1:simulation_k,clockFinal(1:end),'-*','LineWidth',1);
-   semilogy(1:5:simulation_k,clockFinal(1:5:end),'-*','LineWidth',1.5);
+   % semilogy(1:5:simulation_k,clockFinal(1:5:end),'-*','LineWidth',1.5);
    xlabel("同步轮数");
    ylabel("全网最大时钟差");
 

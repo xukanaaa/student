@@ -17,8 +17,8 @@ speed_change=zeros(num_drones,3);%无人机初始化速度扰动
 round=5;%仿真轮数
 skew=zeros(round,simulation_k);%未平均之前的最大频偏差值矩阵
 offset=zeros(round,simulation_k);
-skewFinal=zeros(1,simulation_k);%平均后的每一轮频偏差值。
-offsetFinal=zeros(1,simulation_k);
+skew_final=zeros(1,simulation_k);%平均后的每一轮频偏差值。
+offset_final=zeros(1,simulation_k);
 
 for r=1:5
     
@@ -123,9 +123,9 @@ for r=1:5
     end
     
     %初始化每个节点本地的邻居信息列表(消息轮，当前邻居物理，当前自身物理，当前邻居逻辑，当前自身逻辑，之前邻居物理，之前自身物理，当前邻居l)
-    Neb_list=cell(num_drones,1);
+    neb_list=cell(num_drones,1);
     for i=1:num_drones
-        Neb_list{i}=zeros(num_drones,8);
+        neb_list{i}=zeros(num_drones,8);
     end
     
     %消息交换开始
@@ -135,8 +135,8 @@ for r=1:5
             
             %第一轮不更新，从第二轮开始
             if j>=2
-                l(d(i),1)=GTSP_update_l(Neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
-                h(d(i),1)=GTSP_update_h(Neb_list{d(i)},j,num_drones,h(d(i),1));%更新逻辑时钟相偏参数
+                l(d(i),1)=gtsp_update_l(neb_list{d(i)},j,num_drones,l(d(i),1));%更新逻辑时钟频偏参数
+                h(d(i),1)=gtsp_update_h(neb_list{d(i)},j,num_drones,h(d(i),1));%更新逻辑时钟相偏参数
             end
             
             A=I{ceil((t_local_total(d(i),j)-beta(d(i),1))/(alpha(d(i),1)*time_step))};%发送消息时刻的连接矩阵
@@ -145,7 +145,7 @@ for r=1:5
             %检查d(i)节点发送时与其有连接的其余节点，更新连接节点的邻居信息列表
             for k=1:num_drones
                 if A(d(i),k)==1
-                    C=Neb_list{k};
+                    C=neb_list{k};
                     C(d(i),6)=C(d(i),2);
                     C(d(i),7)=C(d(i),3);
                     C(d(i),1)=j;
@@ -154,7 +154,7 @@ for r=1:5
                     C(d(i),4)=l(d(i),1)*C(d(i),2)+h(d(i),1);%相位同步
                     C(d(i),5)=l(k,1)*C(d(i),3)+h(k,1);
                     C(d(i),8)=l(d(i),1);
-                    Neb_list{k}=C;
+                    neb_list{k}=C;
                 end
             end
         end
@@ -182,12 +182,12 @@ for r=1:5
     offset(r,:)=y1';
 end
 
-skewFinal=mean(skew);
-offsetFinal=mean(offset);
+skew_final=mean(skew);
+offset_final=mean(offset);
 
 format long;
-%plot(5:simulation_k,skewFinal(5:end),'-*','LineWidth',1);
-plot(12:simulation_k,offsetFinal(12:end),'-*','LineWidth',1);
+%plot(5:simulation_k,skew_final(5:end),'-*','LineWidth',1);
+plot(12:simulation_k,offset_final(12:end),'-*','LineWidth',1);
 xlabel('同步轮次');
 ylabel('最大相位偏差');
 grid on;
